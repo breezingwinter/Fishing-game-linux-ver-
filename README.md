@@ -30,16 +30,19 @@ A feature-rich terminal-based fishing game with RPG elements, written in Python.
 
 ### Option 1: Automatic Installation (Recommended)
 
-**Windows (PowerShell):**
-```powershell
-powershell -ExecutionPolicy Bypass -File install_fishing_game.ps1
-```
+**Windows PowerShell (Recommended):**
+1. Download: [install_from_github.ps1](https://github.com/Nokoiscool/Fishing-game/blob/main/install_from_github.ps1)
+2. Right-click → "Run with PowerShell"
 
-**Windows (Batch):**
-```cmd
-install_fishing_game.bat
-```
+**Windows Batch:**
+1. Download: [install_from_github.bat](https://github.com/Nokoiscool/Fishing-game/blob/main/install_from_github.bat)
+2. Double-click to run
 
+The installer will:
+- Install Python (if needed)
+- Download the game
+- Install dependencies
+- Create a desktop launcher
 **Linux/Mac:**
 ```bash
 bash install_fishing_game.sh
@@ -171,5 +174,6 @@ Rod: Carbon Rod | Bait: Squid
 - [ ] Pet companions
 
 ---
+
 
 **Happy Fishing! 🎣**
