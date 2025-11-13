@@ -30,23 +30,17 @@ A feature-rich terminal-based fishing game with RPG elements, written in Python.
 
 ### Option 1: Automatic Installation (Recommended)
 
-**Windows PowerShell (Recommended):**
-1. Download: [install_from_github.ps1](https://github.com/Nokoiscool/Fishing-game/blob/main/install_from_github.ps1)
-2. Right-click → "Run with PowerShell"
-
-**Windows Batch:**
-1. Download: [install_from_github.bat](https://github.com/Nokoiscool/Fishing-game/blob/main/install_from_github.bat)
-2. Double-click to run
-
-The installer will:
-- Install Python (if needed)
-- Download the game
-- Install dependencies
-- Create a desktop launcher
-**Linux/Mac:**
-```bash
-bash install_fishing_game.sh
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy Bypass -File install_fishing_game.ps1
 ```
+
+The installer will automatically:
+- Check if Python is installed (and download it if needed)
+- Download the game from GitHub
+- Install required dependencies
+- Create a launcher on your desktop
+- Set up an update script
 
 ### Option 2: Manual Installation
 
@@ -54,12 +48,18 @@ bash install_fishing_game.sh
    - Download from [python.org](https://www.python.org/downloads/)
    - Make sure to check "Add Python to PATH"
 
-2. **Install Dependencies**
+2. **Install colorama**
    ```bash
-   pip install -r requirements.txt
+   pip install colorama
    ```
 
-3. **Run the Game**
+3. **Download the game**
+   ```bash
+   # Download fishgame.py from the repository
+   curl -O https://raw.githubusercontent.com/Nokoiscool/Fishing-game/main/fishgame.py
+   ```
+
+4. **Run the Game**
    ```bash
    python fishgame.py
    ```
@@ -89,7 +89,7 @@ bash install_fishing_game.sh
   - Patience → Easier mini-games
 - 💰 **Save mutations** - Golden and shadow fish sell for much more!
 
-## 🐟 Fish Rarities
+## 🟦 Fish Rarities
 
 | Rarity | Description | Examples |
 |--------|-------------|----------|
@@ -130,6 +130,16 @@ Save files are stored in:
 - **Windows:** `C:\Users\[YourName]\Documents\FiskeSpill\game_save.json`
 - **Linux/Mac:** `~/Documents/FiskeSpill/game_save.json`
 
+## 🔄 Updating the Game
+
+If you used the automatic installer, simply run:
+- **Windows:** Double-click `Update Game.bat` in your Fishing-Game folder
+
+Or manually download the latest version:
+```bash
+curl -O https://raw.githubusercontent.com/Nokoiscool/Fishing-game/main/fishgame.py
+```
+
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to:
@@ -139,7 +149,7 @@ Contributions are welcome! Feel free to:
 - Improve mini-games
 - Submit pull requests
 
-## 📝 License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
@@ -152,9 +162,9 @@ Created with ❤️ using Python and colorama
 ## 📸 Screenshots
 
 ```
-╔═══════════════════════════════════════╗
+╔════════════════════════════════════╗
 ║    🎣 FISHING GAME 🎣                ║
-╚═══════════════════════════════════════╝
+╚════════════════════════════════════╝
 Level: 5 | XP: 150/500 | 💰: $2,450
 Weather: Stormy
 Difficulty: Normal
@@ -174,6 +184,5 @@ Rod: Carbon Rod | Bait: Squid
 - [ ] Pet companions
 
 ---
-
 
 **Happy Fishing! 🎣**
