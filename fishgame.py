@@ -269,6 +269,8 @@ lake_fish = [
     Fish("Ghost Pike", 20.0, 50.0, "Legendary", 0.5, 150, "A pale, ethereal pike rarely seen by fishermen.", 500),
     Fish("Loch Ness Monster", 1000, 5000, "Mythical", 0.05, 1000, "The Loch Ness Monster is a legendary creature said to inhabit Loch Ness.", 10000),
     Fish("Crystal Leviathan", 2000, 8000, "Mythical", 0.02, 2000, "A massive transparent creature dwelling in the deepest lakes.", 25000),
+    Fish("Hylian Pike", 2, 4, "Rare", 0.7, 14, "A majestic river fish with ancient markings on its scales.", 50),
+    Fish("Nordic Dragon Salmon", 5, 9, "Epic", 0.5, 16, "A salmon with tiny horns and a powerful voice for some reason.", 80),
 ]
 
 ocean_fish = [
@@ -304,6 +306,11 @@ ocean_fish = [
     Fish("Blue Whale", 50000, 150000, "Mythical", 0.001, 5000, "The largest animal to ever exist on Earth.", 100000),
     Fish("Megalodon", 10000, 50000, "Mythical", 0.01, 5000, "An ancient massive shark thought to be extinct.", 50000),
     Fish("Jormungandr", 100000, 500000, "Mythical", 0.0005, 8000, "Jormungandr is a legendary sea serpent said to be the child of Loki.", 100000),
+    Fish("Blockfish Creeper", 3, 6, "Rare", 1.2, 12, "A green, blocky fish that hisses softly underwater. It looks unstable.", 40),
+    Fish("Vault Carp", 2, 5, "Epic", 0.8, 18, "A carp wearing a tiny blue-and-yellow jumpsuit. It seems oddly optimistic.", 65),
+    Fish("Plumber's Tuna", 1, 3, "Uncommon", 2.5, 9, "A red-and-blue tuna that looks like it jumps higher than it swims.", 30),
+    Fish("Glow Reef Angelfish", 3, 6, "Rare", 1.4, 20, "An elegant neon fish that drifts like it's in zero-gravity water.", 90)
+
 ]
 
 river_fish = [
@@ -334,6 +341,12 @@ river_fish = [
     Fish("Nile Perch", 50.0, 200.0, "Legendary", 1, 180, "Massive African predator fish.", 750),
     Fish("River Dragon", 500, 2000, "Mythical", 0.02, 3000, "Mythical serpentine creature said to guard river treasures.", 30000),
     Fish("Kappa", 20, 100, "Mythical", 0.05, 1500, "Japanese water demon disguised as a turtle-like fish.", 15000),
+    Fish("Pale King Mackerel", 2, 4, "Epic", 0.9, 25, "A luminescent white mackerel that rules its school with dignity.", 120),
+    Fish("Mountain Spirit Trout", 1, 2, "Rare", 1.6, 18, "A shimmering trout that seems to be made of determination itself.", 75),
+    Fish("Strawberry Koi", 0.5, 1.2, "Common", 5.2, 8, "A bright koi with flecks of red that resemble fruit.", 25),
+    Fish("Slimey Gloopfish", 0.3, 0.7, "Common", 7.5, 5, "A cheerful blob-fish hybrid that wiggles adorably.", 15),
+    Fish("Lambda Salmon", 1, 3, "Rare", 1.3, 12, "A salmon marked with a mysterious orange symbol. It resists authority.", 70),
+    Fish("Resonance Catfish", 2, 5, "Uncommon", 2.2, 15, "A catfish that vibrates violently, as if stuck mid-experiment.", 50)
 ]
 
 deep_sea_fish = [
@@ -366,6 +379,15 @@ deep_sea_fish = [
     Fish("Kraken", 5000, 10000, "Mythical", 0.001, 10000, "Legendary sea monster said to drag ships to the depths.", 200000),
     Fish("Leviathan", 20000, 100000, "Mythical", 0.0003, 15000, "Biblical sea monster of enormous power.", 300000),
     Fish("Abyssal Horror", 1000, 5000, "Mythical", 0.003, 8000, "Nameless terror from the deepest trenches.", 150000),
+    Fish("Abyss Watcher", 30, 55, "Legendary", 0.18, 70, "A shadowy fish with a burning ember heart and ancient duty.", 650),
+    Fish("Ashen Knight Carp", 12, 20, "Legendary", 0.25, 55, "A solemn carp clad in smoldering ash, refusing to yield even underwater.", 500),
+    Fish("Hollow Pike", 3, 6, "Rare", 1.1, 22, "A fish whose empty eyes hint at forgotten battles.", 80),
+    Fish("Reaper Levi-Minnow", 25, 40, "Legendary", 0.3, 60, "A terrifying predator that screams through the water, despite its size.", 600),
+    Fish("Warp Stalker", 7, 12, "Epic", 0.7, 35, "A fish that flickers in and out of existence when approached.", 180),
+    Fish("Fallen Starfish", 0.8, 1.5, "Uncommon", 4.0, 10,"A fish that glows softly and seems to hum a familiar tune.", 40),
+    Fish("Determined Eel", 3, 6, "Epic", 0.8, 22, "An eel that refuses to flee. Its eyes burn with fierce courage.", 120),
+    Fish("Headcrab Eel", 6, 10, "Epic", 0.8, 30, "An eel with odd, grasping fins that latch onto anything nearby.", 150),
+    Fish("Corrupt Bass", 1, 3, "Rare", 1.5, 16, "A bass infected by a spreading blue-purple corruption.", 60)
 ]
 volcanic_lake_fish = [
     Fish("Ember Minnow", 0.1, 0.5, "Common", 12, 25, "Tiny fish that sparkles like hot coals.", 35),
@@ -380,6 +402,10 @@ volcanic_lake_fish = [
     Fish("Phoenix Tuna", 30.0, 100.0, "Legendary", 0.5, 300, "Said to be reborn from its own ashes.", 1000),
     Fish("Volcanic Leviathan", 1000.0, 5000.0, "Mythical", 0.02, 5000, "Ancient guardian of magma lakes.", 30000),
     Fish("Prometheus Wyrm", 2000.0, 8000.0, "Mythical", 0.01, 7000, "Dragon-serpent that stole fire from the gods.", 50000),
+    Fish("Fireflower Lionfish", 1, 3, "Rare", 1.3, 15, "A fiery lionfish whose fins burst with sparks when startled.", 70),
+    Fish("Balrog Guppy", 10, 18, "Legendary", 0.2, 45, "A tiny fish wreathed in flame, somehow both cute and terrifying.", 450),
+    Fish("Abyssal Serpent of Cinders", 45, 90, "Mythical", 0.1, 90, "A writhing serpent born from the dying flame beneath the waves.", 1500)
+
 ]
 arctic_fish = [
     Fish("Snowflake Guppy", 0.05, 0.3, "Common", 14, 20, "Delicate white fish that freezes instantly when caught.", 30),
@@ -396,6 +422,9 @@ arctic_fish = [
     Fish("Ice Age Behemoth", 1000.0, 4000.0, "Legendary", 0.5, 500, "Prehistoric creature frozen in time.", 1200),
     Fish("Frost Dragon", 2000.0, 10000.0, "Mythical", 0.01, 10000, "An ancient dragon slumbering beneath glaciers.", 100000),
     Fish("Niflheim Serpent", 5000.0, 15000.0, "Mythical", 0.005, 12000, "Norse serpent of ice and mist.", 150000),
+    Fish("Icebender Ray", 4, 9, "Epic", 0.6, 22, "A ray with fluid, sweeping fin movements that chill the water.", 150),
+    Fish("Frostborn Walker", 20, 35, "Legendary", 0.25, 60, "A chilling creature with icy blue eyes and ancient cold energy.", 500)
+
 ]
 
 space_fish = [
@@ -415,6 +444,12 @@ space_fish = [
     Fish("Cosmic Kraken", 5000.0, 20000.0, "Mythical", 0.005, 20000, "Devours stars and moons.", 500000),
     Fish("Celestial Leviathan", 10000.0, 50000.0, "Mythical", 0.001, 30000, "The universe made flesh, older than time itself.", 1000000),
     Fish("Redstone katten", 5, 40, "Mythical", 0.0067, 67000, "The famous Redstone Katten", 10000 ),
+    Fish("Portal Eel", 10, 18, "Epic", 0.6, 40, "An eel that flickers between blue and orange, creating mini rifts.", 200),
+    Fish("Cyberpunk Neon Koi", 3, 7, "Rare", 1.1, 25, "A glowing koi with chrome scales and attitude.", 120),
+    Fish("Voidling Tadpole", 0.2, 0.5, "Uncommon", 3.8, 7, "A small tadpole radiating soft darkness, drifting with purpose.", 30),
+    Fish("Starfury Guppy", 0.2, 0.6, "Epic", 1.0, 12, "A cosmic guppy trailing tiny falling-star sparks.", 100),
+    Fish("Quantum Jelly", 0.5, 1.1, "Rare", 1.9, 18,"A jellyfish that shifts position every time you blink.", 80)
+
 ]
 
 
@@ -1859,7 +1894,7 @@ if __name__ == "__main__":
     show_intro()
     print(Fore.CYAN + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
     print(Fore.CYAN + "║       🎣 FISHING GAME 🎣              ║" + Style.RESET_ALL)
-    print(Fore.CYAN + "║         open beta V.0.4             ║" + Style.RESET_ALL)
+    print(Fore.CYAN + "║         open beta V.0.4.1             ║" + Style.RESET_ALL)
     print(Fore.CYAN + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
     print()
     print(Fore.GREEN + "1. New Game" + Style.RESET_ALL)
