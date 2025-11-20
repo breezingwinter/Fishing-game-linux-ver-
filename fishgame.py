@@ -1927,7 +1927,7 @@ if __name__ == "__main__":
     show_intro()
     print(Fore.CYAN + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
     print(Fore.CYAN + "║       🎣 FISHING GAME 🎣              ║" + Style.RESET_ALL)
-    print(Fore.CYAN + "║         open beta V.0.4.1             ║" + Style.RESET_ALL)
+    print(Fore.CYAN + "║         open beta V.0.4.2             ║" + Style.RESET_ALL)
     print(Fore.CYAN + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
     print()
     print(Fore.GREEN + "1. New Game" + Style.RESET_ALL)
