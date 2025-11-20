@@ -557,7 +557,15 @@ def reaction_minigame(difficulty_modifier=1.0):
     """Fast-paced reaction time game - NOW HARDER WITH DIFFICULTY"""
     print(Fore.YELLOW + "Get ready... Wait for the signal!" + Style.RESET_ALL)
     time_to_wait = random.uniform(1.5, 4.0)
-    time.sleep(time_to_wait)
+    
+    # Clear buffer during wait
+    start_wait = time.time()
+    while time.time() - start_wait < time_to_wait:
+        if sys.platform == 'win32':
+            import msvcrt
+            while msvcrt.kbhit():
+                msvcrt.getch()
+        time.sleep(0.1)
     
     print(Fore.GREEN + ">>> NOW! Press Enter!" + Style.RESET_ALL)
     start_time = time.time()
@@ -569,7 +577,7 @@ def reaction_minigame(difficulty_modifier=1.0):
         reaction_time = 999
     
     # Harder difficulty = stricter timing windows
-    target_time = 0.8 * difficulty_modifier  # Base time affected by difficulty
+    target_time = 0.8 * difficulty_modifier
     good_time = target_time * 1.5
     
     if reaction_time < target_time:
@@ -585,7 +593,6 @@ def reaction_minigame(difficulty_modifier=1.0):
 
 def sequence_minigame(difficulty_modifier=1.0):
     """Memory sequence game - NOW HARDER WITH DIFFICULTY"""
-    # Difficulty increases sequence length
     base_length = 3
     sequence_length = int(base_length + (difficulty_modifier * 1.5))
     
@@ -595,11 +602,19 @@ def sequence_minigame(difficulty_modifier=1.0):
     print(Fore.CYAN + "Memorize this sequence:" + Style.RESET_ALL)
     print(Fore.YELLOW + " ".join(sequence) + Style.RESET_ALL)
     
-    # Less time to memorize on higher difficulty
     memorize_time = max(1.5, 2.5 - (difficulty_modifier * 0.3))
-    time.sleep(memorize_time + sequence_length * 0.25)
+    display_time = memorize_time + sequence_length * 0.25
     
-    print("\n" * 50)
+    # Clear buffer during memorization
+    start_wait = time.time()
+    while time.time() - start_wait < display_time:
+        if sys.platform == 'win32':
+            import msvcrt
+            while msvcrt.kbhit():
+                msvcrt.getch()
+        time.sleep(0.1)
+    
+    os.system('cls' if os.name == 'nt' else 'clear')
     print(Fore.CYAN + "Enter the sequence (separate with spaces):" + Style.RESET_ALL)
     print(Fore.YELLOW + f"[{sequence_length} items to remember]" + Style.RESET_ALL)
     user_input = input(Fore.GREEN + "> " + Style.RESET_ALL).strip().upper().split()
@@ -614,25 +629,38 @@ def sequence_minigame(difficulty_modifier=1.0):
 
 def pattern_minigame(difficulty_modifier=1.0):
     """Pattern matching game - NOW HARDER WITH DIFFICULTY"""
-    # Difficulty increases pattern length and speed
     base_length = 4
     length = int(base_length + (difficulty_modifier * 1.2))
     pattern = ''.join(random.choices(['L', 'R'], k=length))
     
     print(Fore.CYAN + "The fish is moving! Follow the pattern:" + Style.RESET_ALL)
     print(Fore.YELLOW + "Watch carefully..." + Style.RESET_ALL)
+    
+    # Clear buffer before showing pattern
+    if sys.platform == 'win32':
+        import msvcrt
+        while msvcrt.kbhit():
+            msvcrt.getch()
+    
     time.sleep(0.8)
     
-    # Display speed increases with difficulty
     display_speed = max(0.2, 0.5 - (difficulty_modifier * 0.08))
     
     for char in pattern:
         direction = "LEFT" if char == 'L' else "RIGHT"
         print(Fore.YELLOW + f"  {direction}" + Style.RESET_ALL)
-        time.sleep(display_speed)
+        
+        # Clear buffer during each display
+        start = time.time()
+        while time.time() - start < display_speed:
+            if sys.platform == 'win32':
+                import msvcrt
+                while msvcrt.kbhit():
+                    msvcrt.getch()
+            time.sleep(0.05)
     
     time.sleep(0.3)
-    print("\n" * 50)
+    os.system('cls' if os.name == 'nt' else 'clear')
     
     print(Fore.CYAN + f"\nEnter the pattern ({length} moves - L for left, R for right, no spaces):" + Style.RESET_ALL)
     print(Fore.CYAN + "Example: LRRL" + Style.RESET_ALL)
@@ -1530,15 +1558,6 @@ class Game:
                 mutation_info = f" ({fish.mutation})" if fish.mutation != "normal" else ""
                 print(f"{i}. {color}{fish.name}{mutation_info}{Style.RESET_ALL} - {fish.weight:.2f}kg - ${fish.get_sell_price()}")
             
-            keep = input(Fore.CYAN + "Add to trophy room before selling? (y/n): " + Style.RESET_ALL)
-            if keep.lower() == 'y':
-                self.trophy_room.append({
-                    'name': fish.name,
-                    'weight': fish.weight,
-                    'mutation': fish.mutation,
-                    'date': fish.catch_time or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                })
-            print(Fore.LIGHTCYAN_EX + "🏆 Added to trophy room!" + Style.RESET_ALL)
             choice = input(Fore.CYAN + "\nEnter fish number: " + Style.RESET_ALL)
             try:
                 idx = int(choice)
@@ -1546,11 +1565,25 @@ class Game:
                     return
                 if 1 <= idx <= len(self.esky.fish):
                     fish = self.esky.fish[idx - 1]
+                    
+                    # Ask about trophy BEFORE any other operations
+                    keep = input(Fore.CYAN + f"Add {fish.name} to trophy room before selling? (y/n): " + Style.RESET_ALL)
+                    if keep.lower() == 'y':
+                        self.trophy_room.append({
+                            'name': fish.name,
+                            'weight': fish.weight,
+                            'mutation': fish.mutation,
+                            'date': fish.catch_time or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        })
+                        print(Fore.LIGHTCYAN_EX + "🏆 Added to trophy room!" + Style.RESET_ALL)
+                    
+                    # Now sell the fish
                     price = fish.get_sell_price()
                     self.money += price
                     self.esky.fish.pop(idx - 1)
                     print(Fore.GREEN + f"Sold {fish.name} for ${price}!" + Style.RESET_ALL)
                     input(Fore.YELLOW + "Press Enter to continue..." + Style.RESET_ALL)
+                    
                     if not self.esky.fish:
                         return
             except ValueError:
