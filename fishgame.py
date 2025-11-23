@@ -300,8 +300,13 @@ class Encyclopedia:
     def __init__(self):
         self.caught_fish = {}
 
+    def is_new_species(self, fish_name):
+        return fish_name not in self.caught_fish
+
     def add_fish(self, fish):
-        if fish.name not in self.caught_fish:
+        is_new = fish.name not in self.caught_fish
+        
+        if is_new:
             self.caught_fish[fish.name] = {
                 'name': fish.name,
                 'min_weight': fish.min_weight,
@@ -311,7 +316,8 @@ class Encyclopedia:
                 'real_world_info': fish.real_world_info,
                 'times_caught': 1,
                 'heaviest': fish.weight,
-                'mutations_found': [fish.mutation] if fish.mutation != "normal" else []
+                'mutations_found': [fish.mutation] if fish.mutation != "normal" else [],
+                'location': getattr(fish, 'location', 'Unknown')  # Track location
             }
         else:
             self.caught_fish[fish.name]['times_caught'] += 1
@@ -319,25 +325,71 @@ class Encyclopedia:
                 self.caught_fish[fish.name]['heaviest'] = fish.weight
             if fish.mutation != "normal" and fish.mutation not in self.caught_fish[fish.name]['mutations_found']:
                 self.caught_fish[fish.name]['mutations_found'].append(fish.mutation)
+            # Update location if it was missing (for old saves)
+            if 'location' not in self.caught_fish[fish.name]:
+                self.caught_fish[fish.name]['location'] = getattr(fish, 'location', 'Unknown')
+        
+        return is_new  # Return whether it was a new species
 
     def display(self):
         if not self.caught_fish:
             print(Fore.YELLOW + "No fish caught yet! Go fishing to fill your encyclopedia." + Style.RESET_ALL)
             return
         
-        print(Fore.CYAN + "=== Fishing Encyclopedia ===" + Style.RESET_ALL)
+        print(Fore.CYAN + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
+        print(Fore.CYAN + "║      FISHING ENCYCLOPEDIA             ║" + Style.RESET_ALL)
+        print(Fore.CYAN + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
         print(Fore.CYAN + f"Total Species Caught: {len(self.caught_fish)}" + Style.RESET_ALL)
+        print()
         
-        for fish_name, fish_info in sorted(self.caught_fish.items()):
-            print(Fore.GREEN + f"\n{fish_name}:" + Style.RESET_ALL)
-            print(f"  Rarity: {fish_info['rarity']}")
-            print(f"  Weight range: {fish_info['min_weight']}kg - {fish_info['max_weight']}kg")
-            print(f"  Heaviest caught: {fish_info['heaviest']:.2f}kg")
-            print(f"  XP reward: {fish_info['xp_reward']} XP")
-            print(f"  Times caught: {fish_info['times_caught']}")
-            if fish_info['mutations_found']:
-                print(f"  Mutations found: {', '.join(fish_info['mutations_found'])}")
-            print(f"  Info: {fish_info.get('real_world_info', 'No information available.')}")
+        # Group fish by location
+        location_groups = {}
+        for fish_name, fish_info in self.caught_fish.items():
+            location = fish_info.get('location', 'Unknown')
+            if location not in location_groups:
+                location_groups[location] = []
+            location_groups[location].append((fish_name, fish_info))
+        
+        # Count total fish per location from game data
+        # We need to pass this from the game instance, but for now we'll calculate from caught fish
+        location_totals = {
+            'Lake': len(lake_fish),
+            'River': len(river_fish),
+            'Ocean': len(ocean_fish),
+            'Deep Sea': len(deep_sea_fish),
+            'Volcanic Lake': len(volcanic_lake_fish),
+            'Arctic': len(arctic_fish),
+            'Space': len(space_fish)
+        }
+        
+        # Display by location
+        location_order = ['Lake', 'River', 'Ocean', 'Deep Sea', 'Volcanic Lake', 'Arctic', 'Space', 'Unknown']
+        
+        for location in location_order:
+            if location not in location_groups:
+                # Show locations even if no fish caught there yet
+                if location in location_totals:
+                    total_in_location = location_totals[location]
+                    print(Fore.MAGENTA + f"\n━━━ {location.upper()} (0 of {total_in_location} species) ━━━" + Style.RESET_ALL)
+                    print(Fore.YELLOW + "  No fish discovered yet in this location." + Style.RESET_ALL)
+                continue
+            
+            fish_list = location_groups[location]
+            total_in_location = location_totals.get(location, len(fish_list))
+            completion_pct = (len(fish_list) / total_in_location * 100) if total_in_location > 0 else 0
+            
+            print(Fore.MAGENTA + f"\n━━━ {location.upper()} ({len(fish_list)} of {total_in_location} species - {completion_pct:.1f}%) ━━━" + Style.RESET_ALL)
+            
+            for fish_name, fish_info in sorted(fish_list):
+                print(Fore.GREEN + f"\n{fish_name}:" + Style.RESET_ALL)
+                print(f"  Rarity: {fish_info['rarity']}")
+                print(f"  Weight range: {fish_info['min_weight']}kg - {fish_info['max_weight']}kg")
+                print(f"  Heaviest caught: {fish_info['heaviest']:.2f}kg")
+                print(f"  XP reward: {fish_info['xp_reward']} XP")
+                print(f"  Times caught: {fish_info['times_caught']}")
+                if fish_info['mutations_found']:
+                    print(f"  Mutations found: {', '.join(fish_info['mutations_found'])}")
+                print(f"  Info: {fish_info.get('real_world_info', 'No information available.')}")
 
     def get_completion_percentage(self, all_fish):
         return (len(self.caught_fish) / len(all_fish)) * 100 if all_fish else 0
@@ -946,6 +998,23 @@ class Game:
             print(color + f"🌅 Time changed to: {self.time_of_day.upper()}" + Style.RESET_ALL)
             time.sleep(1)
 
+    def migrate_old_encyclopedia_data(self):
+        """Fix encyclopedia entries from old saves that don't have location data"""
+        # Create a lookup dictionary for fish names to locations
+        fish_to_location = {}
+        for location in self.locations:
+            for fish in location.fish:
+                fish_to_location[fish.name] = location.name
+        
+        # Update encyclopedia entries that are missing location data
+        for fish_name, fish_info in self.encyclopedia.caught_fish.items():
+            if 'location' not in fish_info or fish_info['location'] == 'Unknown':
+                # Try to find the location from our fish database
+                if fish_name in fish_to_location:
+                    fish_info['location'] = fish_to_location[fish_name]
+                else:
+                    fish_info['location'] = 'Unknown'
+
     def check_achievements(self):
         """Enhanced achievement checking system"""
         total_caught = sum(info['times_caught'] for info in self.encyclopedia.caught_fish.values())
@@ -1269,6 +1338,8 @@ class Game:
                 self.difficulty_mult = game_data.get('difficulty_mult', 1.0)
                 self.weather = game_data.get('weather', 'sunny')
                 self.achievements = game_data.get('achievements', self.achievements)
+                self.encyclopedia.caught_fish = game_data.get('encyclopedia', {})
+                self.migrate_old_encyclopedia_data()
                 
                 # NEW FEATURES - Use .get(d) with defaults for backwards compatibility
                 self.skill_points = game_data.get('skill_points', 0)
@@ -1415,12 +1486,30 @@ class Game:
         # Pass the calculated difficulty AND is_hidden flag to minigame
         if fishing_mini_game(total_difficulty, caught_fish.name, is_hidden):
             caught_fish.catch()
+            caught_fish.location = location.name  # Add location tracking
+            
+            # Check if new species BEFORE adding to encyclopedia
+            is_new_discovery = self.encyclopedia.is_new_species(caught_fish.name)
+            
             self.esky.add_fish(caught_fish)
             self.encyclopedia.add_fish(caught_fish)
+            
             print(Fore.GREEN + f"Caught: {caught_fish}" + Style.RESET_ALL)
             print(Fore.LIGHTGREEN_EX + f"Sell value: ${caught_fish.get_sell_price()}" + Style.RESET_ALL)
-            self.add_xp(caught_fish.xp_reward)
-            
+
+            if is_new_discovery:
+                print()
+                print(Fore.LIGHTCYAN_EX + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
+                print(Fore.LIGHTCYAN_EX + "║     🎉 NEW SPECIES DISCOVERED! 🎉     ║" + Style.RESET_ALL)
+                print(Fore.LIGHTCYAN_EX + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
+                print(Fore.YELLOW + f"   {caught_fish.name} added to encyclopedia!" + Style.RESET_ALL)
+                print(Fore.GREEN + f"   Bonus: +{caught_fish.xp_reward * 2} XP" + Style.RESET_ALL)
+                print()
+                self.add_xp(caught_fish.xp_reward * 2)  # Double XP for new species!
+                time.sleep(1.5)
+            else:
+                self.add_xp(caught_fish.xp_reward)
+
             # Achievement checks
             if caught_fish.rarity == "Rare" and not self.achievements['first_rare']:
                 self.achievements['first_rare'] = True
