@@ -256,7 +256,7 @@ class Location:
         self.unlock_level = unlock_level
         self.weather_affects = weather_affects
 
-    def get_random_fish(self, weather="sunny", bait_boost=0, time_of_day="day"):
+    def get_random_fish(self, weather="sunny", bait_boost=0, time_of_day="day", golden_boost=False):
         weighted_fish = []
         for fish in self.fish:
             weight = int(fish.rarity_weight * (1 + bait_boost))
@@ -268,13 +268,18 @@ class Location:
                 if fish.rarity in ["Rare", "Legendary", "Mythical"]:
                     weight = int(weight * 1.5)
             
-            # Time effects - NEW
+            # Time effects
             if time_of_day == "night":
                 if fish.rarity in ["Rare", "Legendary"]:
                     weight = int(weight * 1.3)
             elif time_of_day == "dawn" or time_of_day == "dusk":
                 if fish.rarity == "Mythical":
                     weight = int(weight * 2.0)
+            
+            # Golden spot bonus - 2.5x multiplier for rare fish!
+            if golden_boost:
+                if fish.rarity in ["Rare", "Legendary", "Mythical", "Godly"]:
+                    weight = int(weight * 2.5)
             
             weighted_fish.extend([fish] * max(1, weight))
         
@@ -1399,34 +1404,22 @@ class Game:
             print(Fore.RED + f"Error loading game: {e}" + Style.RESET_ALL)
 
     def choose_location(self):
-        self.clear_screen()
-        print(Fore.CYAN + "Choose a location to fish:" + Style.RESET_ALL)
-        
-        available_locations = []
-        for i, location in enumerate(self.locations, start=1):
-            if self.level >= location.unlock_level:
-                print(Fore.GREEN + f"{i}: {location.name} (Unlocked)" + Style.RESET_ALL)
-                available_locations.append(i-1)
-            else:
-                print(Fore.RED + f"{i}: {location.name} (Unlock at level {location.unlock_level})" + Style.RESET_ALL)
-        
-        choice = input(Fore.GREEN + "\nEnter the number of your choice: " + Style.RESET_ALL)
-        try:
-            location_index = int(choice) - 1
-            if location_index in available_locations:
-                self.fish(self.locations[location_index])
-            else:
-                print(Fore.RED + "Location locked or invalid choice." + Style.RESET_ALL)
-                input(Fore.YELLOW + "Press Enter to continue..." + Style.RESET_ALL)
-        except ValueError:
-            print(Fore.RED + "Please enter a valid number." + Style.RESET_ALL)
-            input(Fore.YELLOW + "Press Enter to continue..." + Style.RESET_ALL)
+        """Replaced with Zelda-style map exploration"""
+        map_based_fishing(self)
 
-    def fish(self, location):
+    def fish(self, location=None, golden_spot=False):
+        # Use current_location if no location specified
+        if location is None:
+            location = getattr(self, 'current_location', self.locations[0])
         if self.esky.is_full():
             print(Fore.RED + "Your esky is full! Sell some fish first." + Style.RESET_ALL)
             input(Fore.YELLOW + "Press Enter to continue..." + Style.RESET_ALL)
             return
+        
+        # Golden spot notification
+        if golden_spot:
+            print(Fore.LIGHTYELLOW_EX + "✨ Fishing at a GOLDEN SPOT! Better odds for rare fish! ✨" + Style.RESET_ALL)
+            time.sleep(0.5)
         
         # Weather might change
         if random.random() < 0.15:
@@ -1434,8 +1427,13 @@ class Game:
             print(Fore.CYAN + f"The weather changed to {self.weather}!" + Style.RESET_ALL)
             time.sleep(1)
         
-        # Get the fish template first
-        fish_template = location.get_random_fish(self.weather, self.current_bait.rarity_boost, self.time_of_day)
+        # Get the fish template first - with golden spot boost
+        fish_template = location.get_random_fish(
+            self.weather, 
+            self.current_bait.rarity_boost, 
+            self.time_of_day,
+            golden_boost=golden_spot  # Pass golden spot info
+        )
         if not fish_template:
             print(Fore.RED + "No fish were available to catch!" + Style.RESET_ALL)
             input(Fore.YELLOW + "Press Enter to continue..." + Style.RESET_ALL)
@@ -2153,6 +2151,535 @@ class Game:
             print(Fore.RED + "Not enough money!" + Style.RESET_ALL)
             return
 
+
+
+
+
+# ===== ZELDA-STYLE MAP SYSTEM =====
+import sys
+import os
+from colorama import Fore, Back, Style
+
+# Keyboard input functions
+if os.name == 'nt':
+    import msvcrt
+else:
+    import tty
+    import termios
+
+def get_key():
+    """Get a single keypress from the user"""
+    if os.name == 'nt':
+        try:
+            key = msvcrt.getch().decode('utf-8').lower()
+            return key
+        except:
+            return ''
+    else:
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            key = sys.stdin.read(1).lower()
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return key
+
+
+class LocationMap:
+    """A specific fishing location with its own internal map"""
+    def __init__(self, name, game_location_index, layout, fishing_spots, description, randomize_spots=False):
+        self.name = name
+        self.game_location_index = game_location_index
+        self.layout = layout  # 2D map array
+        self.description = description
+        self.player_x = 1
+        self.player_y = 1
+        self.message = f"Welcome to {name}! Find a fishing spot (⊙) and press E to fish."
+        
+        # Fishing spot system
+        if randomize_spots:
+            self.fishing_spots = self._generate_random_spots(layout)
+        else:
+            self.fishing_spots = fishing_spots  # List of (x, y) coordinates
+        
+        # Golden spots - 10% chance for each spot to be golden
+        self.golden_spots = set()
+        for spot in self.fishing_spots:
+            if random.random() < 0.10:  # 10% chance
+                self.golden_spots.add(spot)
+        
+        # Set player to first valid position
+        for y, row in enumerate(layout):
+            for x, tile in enumerate(row):
+                if tile in ['.', '·', 'F']:
+                    self.player_x = x
+                    self.player_y = y
+                    break
+            if self.player_x != 1 or self.player_y != 1:
+                break
+    
+    def _generate_random_spots(self, layout):
+        """Generate random fishing spots on water tiles"""
+        water_tiles = []
+        for y, row in enumerate(layout):
+            for x, tile in enumerate(row):
+                if tile in ['~', 'w', 'L', 'V', 'S']:  # Water-type tiles
+                    water_tiles.append((x, y))
+        
+        # Select 30-50% of water tiles as fishing spots
+        num_spots = max(3, int(len(water_tiles) * random.uniform(0.3, 0.5)))
+        return random.sample(water_tiles, min(num_spots, len(water_tiles)))
+    
+    def get_tile(self, x, y):
+        if 0 <= y < len(self.layout) and 0 <= x < len(self.layout[y]):
+            return self.layout[y][x]
+        return '#'
+    
+    def can_move_to(self, x, y):
+        tile = self.get_tile(x, y)
+        return tile in ['.', '·', 'F', '~', 'w', 'L', 'T']  # walkable tiles
+    
+    def is_fishing_spot(self, x, y):
+        return (x, y) in self.fishing_spots
+    
+    def is_golden_spot(self, x, y):
+        """Check if this is a rare golden fishing spot"""
+        return (x, y) in self.golden_spots
+    
+    def move_player(self, dx, dy):
+        new_x = self.player_x + dx
+        new_y = self.player_y + dy
+        
+        if self.can_move_to(new_x, new_y):
+            self.player_x = new_x
+            self.player_y = new_y
+            
+            if self.is_fishing_spot(self.player_x, self.player_y):
+                if self.is_golden_spot(self.player_x, self.player_y):
+                    self.message = "✨ GOLDEN SPOT! ✨ Rare fish more likely here! Press E to fish."
+                else:
+                    self.message = "🎣 Fishing spot! Press E to cast your line."
+            else:
+                self.message = "Move around to find fishing spots."
+        else:
+            self.message = "Can't go that way!"
+    
+    def render_tile(self, tile, is_player, is_fishing_spot, is_golden=False):
+        if is_player:
+            return Fore.YELLOW + "☻" + Style.RESET_ALL
+        
+        if is_fishing_spot:
+            if is_golden:
+                return Fore.LIGHTYELLOW_EX + "◉" + Style.RESET_ALL  # Golden spot
+            else:
+                return Fore.CYAN + "⊙" + Style.RESET_ALL  # Regular spot
+        
+        tile_colors = {
+            '#': Fore.WHITE + "█" + Style.RESET_ALL,  # walls (old style)
+            '~': Fore.BLUE + "≈" + Style.RESET_ALL,  # water
+            'w': Fore.CYAN + "≋" + Style.RESET_ALL,  # water
+            'L': Fore.LIGHTBLUE_EX + "≈" + Style.RESET_ALL,  # lake water
+            'T': Fore.GREEN + "♣" + Style.RESET_ALL,  # trees
+            '.': Fore.LIGHTBLACK_EX + "·" + Style.RESET_ALL,  # ground (old style)
+            '·': Fore.LIGHTBLACK_EX + "·" + Style.RESET_ALL,  # ground
+            'V': Fore.RED + "♨" + Style.RESET_ALL,  # volcano
+            'S': Fore.MAGENTA + "⌬" + Style.RESET_ALL,  # space
+            '^': Fore.WHITE + "▲" + Style.RESET_ALL,  # mountain
+            '*': Fore.YELLOW + "✦" + Style.RESET_ALL,  # stars/special
+            # Unicode borders
+            '┏': Fore.CYAN + "┏" + Style.RESET_ALL,
+            '━': Fore.CYAN + "━" + Style.RESET_ALL,
+            '┓': Fore.CYAN + "┓" + Style.RESET_ALL,
+            '┃': Fore.CYAN + "┃" + Style.RESET_ALL,
+            '┗': Fore.CYAN + "┗" + Style.RESET_ALL,
+            '┛': Fore.CYAN + "┛" + Style.RESET_ALL,
+        }
+        
+        return tile_colors.get(tile, tile)
+
+
+class OverworldMap:
+    """Main overworld map - Zelda style"""
+    def __init__(self, game_instance):
+        self.game = game_instance
+        self.player_x = 18
+        self.player_y = 10
+        self.message = "Welcome to the fishing world! Walk to a location and press E to enter it."
+        
+        # Overworld map - smaller, Zelda-like
+        self.map_layout = [
+            "╔════════════════════════╗",
+            "║........................║",
+            "║...MMM..................║",
+            "║..MMMMM.................║",
+            "║...MMM..................║",
+            "║........................║",
+            "║.LLLL.....RRRR..........║",
+            "║LLLLLL...RRRRRR.........║",
+            "║.LLLL.....RRRR..........║",
+            "║........................║",
+            "║........~~~~~~~~~~......║",
+            "║.......~~~~~~~~~~~~.....║",
+            "║......~~~~~~~~~~~~~~....║",
+            "║......~~~~~~~~~~~~~~.VVV║",
+            "║.......~~~~~~~~~~~~.VVVV║",
+            "║........~~~~~~~~~~...VVV║",
+            "║........................║",
+            "║............SSS.........║",
+            "║............SSS.........║",
+            "║........................║",
+            "╚════════════════════════╝",
+        ]
+        
+        # Location definitions - which tiles represent which locations
+        self.locations = {
+            'L': {
+                'name': 'Freshwater Lake',
+                'color': Fore.LIGHTBLUE_EX,
+                'char': 'L',
+                'game_index': 0,  # Lake in game.locations[0]
+                'unlock_level': 1,
+                'map': self.create_lake_map()
+            },
+            'R': {
+                'name': 'River',
+                'color': Fore.CYAN,
+                'char': 'R',
+                'game_index': 1,  # River in game.locations[1]
+                'unlock_level': 2,
+                'map': self.create_river_map()
+            },
+            '~': {
+                'name': 'Deep Ocean',
+                'color': Fore.BLUE,
+                'char': '~',
+                'game_index': 2,  # Ocean in game.locations[2]
+                'unlock_level': 3,
+                'map': self.create_ocean_map()
+            },
+            'V': {
+                'name': 'Volcanic Waters',
+                'color': Fore.RED,
+                'char': 'V',
+                'game_index': 4,  # Volcanic Lake in game.locations[4]
+                'unlock_level': 7,
+                'map': self.create_volcano_map()
+            },
+            'S': {
+                'name': 'Space Station',
+                'color': Fore.MAGENTA,
+                'char': 'S',
+                'game_index': 6,  # Space in game.locations[6]
+                'unlock_level': 12,
+                'map': self.create_space_map()
+            }
+        }
+    
+    def create_lake_map(self):
+        """Lake location - peaceful, lots of fishing spots"""
+        layout = [
+            "┏━━━━━━━━━━━━━━━━━━━━┓",
+            "┃··········LLLLLL····┃",
+            "┃·········LLLLLLLL···┃",
+            "┃TTTT····LLLLLLLLLL··┃",
+            "┃TTTT····LLLLLLLLLL··┃",
+            "┃········LLLLLLLLLL··┃",
+            "┃·········LLLLLLLL···┃",
+            "┃··········LLLLLL····┃",
+            "┃··············· ····┃",
+            "┃·TTT················┃",
+            "┗━━━━━━━━━━━━━━━━━━━━┛",
+        ]
+        # Enable randomized fishing spots for more variety!
+        return LocationMap("Freshwater Lake", 0, layout, [], "A peaceful lake surrounded by trees", randomize_spots=True)
+    
+    def create_river_map(self):
+        """River location - flowing water with multiple spots"""
+        layout = [
+            "┏━━━━━━━━━━━━━━━━━━━━━━━━┓",
+            "┃························┃",
+            "┃···RRRR·················┃",
+            "┃··RRRRRR················┃",
+            "┃···RRRRRR···············┃",
+            "┃····RRRRRR··············┃",
+            "┃·····RRRRRR·············┃",
+            "┃······RRRRRR············┃",
+            "┃·······RRRRRR···········┃",
+            "┃········RRRRRR··········┃",
+            "┃·········RRRR···········┃",
+            "┃························┃",
+            "┗━━━━━━━━━━━━━━━━━━━━━━━━┛",
+        ]
+        return LocationMap("River", 1, layout, [], "A flowing river with strong currents", randomize_spots=True)
+    
+    def create_ocean_map(self):
+        """Ocean location - massive, many fishing spots"""
+        layout = [
+            "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+            "┃····························┃",
+            "┃·····~~~~~~~~~~~~~~~~~~~~~~·┃",
+            "┃····~~~~~~~~~~~~~~~~~~~~~~~~┃",
+            "┃···~~~~~~~~~~~~~~~~~~~~~~~~~┃",
+            "┃···~~~~~~~~~~~~~~~~~~~~~~~~~┃",
+            "┃···~~~~~~~~~~~~~~~~~~~~~~~~~┃",
+            "┃···~~~~~~~~~~~~~~~~~~~~~~~~~┃",
+            "┃····~~~~~~~~~~~~~~~~~~~~~~~~┃",
+            "┃·····~~~~~~~~~~~~~~~~~~~~~~·┃",
+            "┃····························┃",
+            "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛",
+        ]
+        return LocationMap("Deep Ocean", 2, layout, [], "The vast deep sea", randomize_spots=True)
+    
+    def create_volcano_map(self):
+        """Volcanic waters - dangerous, fewer spots"""
+        layout = [
+            "┏━━━━━━━━━━━━━━━━┓",
+            "┃················┃",
+            "┃···VV··VVV······┃",
+            "┃··VVVVVVVVV·····┃",
+            "┃···VVVVVVV······┃",
+            "┃····VVVVV·······┃",
+            "┃·····VVV········┃",
+            "┃················┃",
+            "┗━━━━━━━━━━━━━━━━┛",
+        ]
+        return LocationMap("Volcanic Waters", 4, layout, [], "Dangerous heated waters near the volcano", randomize_spots=True)
+    
+    def create_space_map(self):
+        """Space station - sci-fi themed"""
+        layout = [
+            "┏━━━━━━━━━━━━━━━━━━┓",
+            "┃SSSSSSSSSSSSSSSSSS┃",
+            "┃S················S┃",
+            "┃S·····****·······S┃",
+            "┃S·····****·······S┃",
+            "┃S················S┃",
+            "┃S················S┃",
+            "┃SSSSSSSSSSSSSSSSSS┃",
+            "┗━━━━━━━━━━━━━━━━━━┛",
+        ]
+        return LocationMap("Space Station", 6, layout, [], "A mysterious space station orbiting Earth", randomize_spots=True)
+    
+    def get_tile(self, x, y):
+        if 0 <= y < len(self.map_layout) and 0 <= x < len(self.map_layout[y]):
+            return self.map_layout[y][x]
+        return '#'
+    
+    def can_move_to(self, x, y):
+        tile = self.get_tile(x, y)
+        return tile != '#'  # Can walk on everything except walls
+    
+    def get_location_at(self, x, y):
+        """Check if player is standing on a location"""
+        tile = self.get_tile(x, y)
+        if tile in self.locations:
+            return self.locations[tile]
+        return None
+    
+    def is_location_unlocked(self, location):
+        """Check if a location is unlocked based on player level"""
+        if location is None:
+            return False
+        return self.game.level >= location['unlock_level']
+    
+    def move_player(self, dx, dy):
+        new_x = self.player_x + dx
+        new_y = self.player_y + dy
+        
+        if self.can_move_to(new_x, new_y):
+            self.player_x = new_x
+            self.player_y = new_y
+            
+            location = self.get_location_at(self.player_x, self.player_y)
+            if location:
+                if self.is_location_unlocked(location):
+                    self.message = f"📍 {location['name']} - Press E to enter!"
+                else:
+                    self.message = f"🔒 {location['name']} - Unlocks at level {location['unlock_level']} (You: Lvl {self.game.level})"
+            else:
+                self.message = "Explore the world and find fishing locations!"
+        else:
+            self.message = "Can't go that way!"
+    
+    def render_overworld(self, clear_func):
+        clear_func()
+        
+        print(Fore.CYAN + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
+        print(Fore.CYAN + "║         FISHING WORLD MAP             ║" + Style.RESET_ALL)
+        print(Fore.CYAN + f"║         Level {self.game.level} Angler{' ' * (26 - len(str(self.game.level)))}║" + Style.RESET_ALL)
+        print(Fore.CYAN + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
+        print()
+        
+        for y, row in enumerate(self.map_layout):
+            line = ""
+            for x, tile in enumerate(row):
+                if x == self.player_x and y == self.player_y:
+                    line += Fore.YELLOW + "☻" + Style.RESET_ALL
+                elif tile == '#':
+                    line += Fore.WHITE + "█" + Style.RESET_ALL
+                elif tile in self.locations:
+                    # Check if this location is unlocked
+                    location = self.locations[tile]
+                    if self.is_location_unlocked(location):
+                        # Unlocked - show in full color
+                        if tile == 'L':
+                            line += Fore.LIGHTBLUE_EX + "≈" + Style.RESET_ALL
+                        elif tile == 'R':
+                            line += Fore.CYAN + "≋" + Style.RESET_ALL
+                        elif tile == '~':
+                            line += Fore.BLUE + "~" + Style.RESET_ALL
+                        elif tile == 'V':
+                            line += Fore.RED + "♨" + Style.RESET_ALL
+                        elif tile == 'S':
+                            line += Fore.MAGENTA + "⌬" + Style.RESET_ALL
+                    else:
+                        # Locked - show dimmed
+                        if tile == 'L':
+                            line += Fore.LIGHTBLACK_EX + "≈" + Style.RESET_ALL
+                        elif tile == 'R':
+                            line += Fore.LIGHTBLACK_EX + "≋" + Style.RESET_ALL
+                        elif tile == '~':
+                            line += Fore.LIGHTBLACK_EX + "~" + Style.RESET_ALL
+                        elif tile == 'V':
+                            line += Fore.LIGHTBLACK_EX + "♨" + Style.RESET_ALL
+                        elif tile == 'S':
+                            line += Fore.LIGHTBLACK_EX + "⌬" + Style.RESET_ALL
+                elif tile == 'M':
+                    line += Fore.GREEN + "♠" + Style.RESET_ALL
+                else:
+                    line += Fore.LIGHTBLACK_EX + "·" + Style.RESET_ALL
+            print(line)
+        
+        print("\n" + "=" * 50)
+        print(f"{Fore.GREEN}Position: ({self.player_x}, {self.player_y}) | Level: {self.game.level}")
+        print(f"{Fore.CYAN}{self.message}")
+        print("=" * 50)
+        
+        # Location legend
+        print(f"\n{Fore.CYAN}Locations:{Style.RESET_ALL}")
+        for tile_char, loc in self.locations.items():
+            is_unlocked = self.is_location_unlocked(loc)
+            status = f"{Fore.GREEN}✓" if is_unlocked else f"{Fore.RED}🔒 Lvl{loc['unlock_level']}"
+            color = loc['color'] if is_unlocked else Fore.LIGHTBLACK_EX
+            
+            if tile_char == 'L':
+                symbol = "≈"
+            elif tile_char == 'R':
+                symbol = "≋"
+            elif tile_char == '~':
+                symbol = "~"
+            elif tile_char == 'V':
+                symbol = "♨"
+            elif tile_char == 'S':
+                symbol = "⌬"
+            else:
+                symbol = tile_char
+                
+            print(f"  {color}{symbol}{Style.RESET_ALL} {loc['name']:20s} {status}{Style.RESET_ALL}")
+        
+        print(f"\n{Fore.WHITE}[WASD] Move | [E] Enter Location | [Q] Exit{Style.RESET_ALL}")
+    
+    def render_location(self, location_map, clear_func):
+        clear_func()
+        
+        print(Fore.CYAN + f"╔═══════════════════════════════════════╗" + Style.RESET_ALL)
+        print(Fore.CYAN + f"║  {location_map.name.center(37)}  ║" + Style.RESET_ALL)
+        print(Fore.CYAN + f"╚═══════════════════════════════════════╝" + Style.RESET_ALL)
+        print(Fore.YELLOW + location_map.description + Style.RESET_ALL)
+        print()
+        
+        for y, row in enumerate(location_map.layout):
+            line = ""
+            for x, tile in enumerate(row):
+                is_player = (x == location_map.player_x and y == location_map.player_y)
+                is_spot = location_map.is_fishing_spot(x, y)
+                is_golden = location_map.is_golden_spot(x, y)
+                line += location_map.render_tile(tile, is_player, is_spot, is_golden)
+            print(line)
+        
+        print("\n" + "=" * 50)
+        print(f"{Fore.GREEN}Position: ({location_map.player_x}, {location_map.player_y})")
+        print(f"{Fore.CYAN}{location_map.message}")
+        print("=" * 50)
+        print(f"{Fore.CYAN}⊙{Style.RESET_ALL} Regular Spot | {Fore.LIGHTYELLOW_EX}◉{Style.RESET_ALL} Golden Spot (Better loot!)")
+        print(f"{Fore.WHITE}[WASD] Move | [E] Fish at spot | [Q] Return to overworld{Style.RESET_ALL}")
+    
+    def run(self):
+        """Main map navigation loop"""
+        current_location_map = None  # None means we're on overworld
+        
+        while True:
+            if current_location_map is None:
+                # Overworld mode
+                self.render_overworld(self.game.clear_screen)
+                
+                key = get_key()
+                
+                if key == 'w':
+                    self.move_player(0, -1)
+                elif key == 's':
+                    self.move_player(0, 1)
+                elif key == 'a':
+                    self.move_player(-1, 0)
+                elif key == 'd':
+                    self.move_player(1, 0)
+                elif key == 'e':
+                    # Try to enter a location
+                    location = self.get_location_at(self.player_x, self.player_y)
+                    if location:
+                        if self.is_location_unlocked(location):
+                            current_location_map = location['map']
+                            self.game.current_location = self.game.locations[location['game_index']]
+                        else:
+                            self.message = f"🔒 {location['name']} is locked! Requires level {location['unlock_level']} (You: Lvl {self.game.level})"
+                    else:
+                        self.message = "Nothing to enter here. Find a location!"
+                elif key == 'q':
+                    return 'QUIT'
+            
+            else:
+                # Inside a location
+                self.render_location(current_location_map, self.game.clear_screen)
+                
+                key = get_key()
+                
+                if key == 'w':
+                    current_location_map.move_player(0, -1)
+                elif key == 's':
+                    current_location_map.move_player(0, 1)
+                elif key == 'a':
+                    current_location_map.move_player(-1, 0)
+                elif key == 'd':
+                    current_location_map.move_player(1, 0)
+                elif key == 'e':
+                    # Try to fish
+                    if current_location_map.is_fishing_spot(
+                        current_location_map.player_x, 
+                        current_location_map.player_y
+                    ):
+                        # Check if this is a golden spot
+                        is_golden = current_location_map.is_golden_spot(
+                            current_location_map.player_x,
+                            current_location_map.player_y
+                        )
+                        # Fish right here without returning!
+                        self.game.fish(golden_spot=is_golden)
+                        current_location_map.message = "🎣 Cast your line again, or move to explore!"
+                    else:
+                        current_location_map.message = "You need to be at a fishing spot (⊙) to fish!"
+                elif key == 'q':
+                    # Return to overworld
+                    current_location_map = None
+                    self.message = "Returned to overworld. Explore more locations!"
+
+
+# This replaces the choose_location method in the Game class
+def map_based_fishing(game_instance):
+    """Replace the location selection menu with map exploration"""
+    overworld = OverworldMap(game_instance)
+    overworld.run()
+    # Player either quit or finished their session
 
 
 # ===== MAIN =====
