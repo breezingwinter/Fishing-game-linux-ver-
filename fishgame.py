@@ -144,8 +144,6 @@ def get_random_fact():
     return random.choice(DID_YOU_KNOW_FACTS)
 
 
-
-
 # ===== MODELS =====
 class Fish:
     def __init__(self, name, min_weight, max_weight, rarity, rarity_weight, xp_reward, real_world_info="", sell_price=10):
@@ -728,6 +726,41 @@ def pattern_minigame(patience_stat):
     else:
         print(Fore.RED + f"✗ Incorrect! The pattern was {pattern}" + Style.RESET_ALL)
         return False
+    
+def stardew_valley_minigame(patience_stat):
+    """A more complex minigame inspired by Stardew Valley's fishing game"""
+    print(Fore.YELLOW + "\n🎣 Stardew Valley Fishing Minigame!" + Style.RESET_ALL)
+    
+    bar_width = 20
+    fish_position = random.randint(0, bar_width - 1)
+    player_position = bar_width // 2
+    tension = 0
+    
+    for _ in range(60):  # 60 frames
+        bar = ['░'] * bar_width
+        bar[fish_position] = '🐟'
+        bar[player_position] = '▼'
+        
+        print('\r' + Fore.CYAN + ''.join(bar) + Style.RESET_ALL, end='', flush=True)
+        
+        key = get_key()
+        if key == 'a' and player_position > 0:
+            player_position -= 1
+        elif key == 'd' and player_position < bar_width - 1:
+            player_position += 1
+        
+        if player_position == fish_position:
+            tension += 1
+            if tension >= 5:
+                print(Fore.GREEN + "\n✓ Caught the fish!" + Style.RESET_ALL)
+                return True
+        else:
+            tension = max(0, tension - 1)
+        
+        time.sleep(0.1)
+    
+    print(Fore.RED + "\n✗ The fish got away!" + Style.RESET_ALL)
+    return False
 
 
 # ===== LOCATION MAP CLASS =====
@@ -831,8 +864,8 @@ HUB_ISLAND_LAYOUT = [
     ['█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█', '█',  '█', '█', '█', '█', '█', '█', '█', '█', '█', '█'],
     ['█', '🌳', '🌳', '▓', '▓', '▓', '▓', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '█'],
     ['█', '🌳', '🏛️', '.', '.', '.', '▓', '▓', '▓', '🌳', '≋', '≋', '≋', '≋', '≋', '≋', '🌳', '🌳', '🌳', '🌳', '🌳',  '█'],
-    ['█', '🌳', '.',  '.', '.', '.', '▓', '▓', '🌳', '≋', '⊙', '≋', '≋', '⊙', '≋', '◉', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '█'],
-    ['█', '🌳', '🏠', '.', 'P', '.', '.', '.', '🌳', '🌳', '≋', '≋', '≋', '≋', '≋', '≋', '🌳', '🌳', '🌳', '🌳', '█'],
+    ['█', '🌳', '.', '.', '.', '▓', '▓', '🌳', '≋', '⊙', '≋', '≋', '⊙', '≋', '◉', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '█'],
+    ['█', '🌳', '🏠', '.', '.', 'P', '.', '.', '.', '🌳', '🌳', '≋', '≋', '≋', '≋', '≋', '≋', '🌳', '🌳', '🌳', '🌳', '█'],
     ['█', '🌳', '.', '.', '.', '.', '.', '.', '🌳', '≈', '≈', '≈', '≋', '≋', '≋', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '█'],
     ['█', '🌳', '.', '.', '🏪', '.', '.', '≈', '≈', '⊙', '≈', '≈', '≋', '≋', '≋', '🌳', '🌳', '🌳', '🌳', '🌳', '🌳', '█'],
     ['█', '🌳', '🌳', '.', '.', '.', '.', '≈', '≈', '≈', '≈', '≈', '≈', '≈', '≋', '≋', '≋', '🌳', '🌳', '🌳', '🌳', '🌳', '█'],
@@ -1461,7 +1494,7 @@ class Game:
         print(Fore.YELLOW + "\n🎣 Something's biting!" + Style.RESET_ALL)
         time.sleep(0.5)
         
-        minigame_choice = random.choice([button_mashing_minigame, timing_minigame, pattern_minigame])
+        minigame_choice = random.choice([button_mashing_minigame, timing_minigame, pattern_minigame, stardew_valley_minigame])
         success = minigame_choice(self.stats['patience'])
         
         if not success:
