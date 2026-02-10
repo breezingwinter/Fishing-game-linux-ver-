@@ -897,7 +897,7 @@ DEEP_SEA_LAYOUT = [
     ['▓', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '▓'],
     ['▓', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '▓'],
     ['▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓', '▓'],
-    ],
+],
     ['▓', '.', '.', '.', '⊙', '.', '.', '.', '.', '.', '.', '.', '.', '.', '▓'],
     ['▓', '.', '.', '.', '.', '.', '.', '.', '.', '.', '⊙', '.', '.', '.', '▓'],
     ['▓', '.', '⊙', '.', '.', '.', '.', '◉', '.', '.', '.', '.', '.', '.', '▓'],
@@ -1023,6 +1023,233 @@ AVAILABLE_QUESTS = [
     Quest("Sturgeon Master", "Catch a massive Sturgeon", "Sturgeon", 1, 500, 300),
     Quest("Deep Diver", "Catch 2 fish from the Deep Sea", None, 2, 1000, 500),  # Any fish from Deep Sea
 ]
+
+
+# ===== WORLD MAP CLASS =====
+class WorldMap:
+    """Navigable world map showing all fishing locations"""
+    def __init__(self, game_instance):
+        self.game = game_instance
+        self.player_x = 5
+        self.player_y = 3
+        self.message = "Navigate to a location and press [E] to travel there!"
+        
+        # World map layout
+        # H = Hub Island (home), O = Ocean, D = Deep Sea, V = Volcanic Lake, A = Arctic Waters, S = Space
+        self.layout = [
+            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+            "~~~~~~~🌊O~~~~~~~~~❄️A~~~~~~~",
+            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+            "~~🏝️H~~~~~~~~~~~~~~~~~~~~~~~~",
+            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+            "~~~~~~~~~🌋V~~~~~~~🌊D~~~~~~~",
+            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+            "~~~~~~~~~~~🚀S~~~~~~~~~~~~~~~",
+            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+        ]
+        
+        # Map location data to coordinates and LOCATIONS indices
+        self.locations = {
+            'H': {
+                'name': 'Hub Island',
+                'color': Fore.GREEN,
+                'game_index': 0,  # Index in LOCATIONS array
+                'unlock_level': 1,
+                'x': 2,
+                'y': 3,
+                'map': None  # This is home, no map to enter
+            },
+            'O': {
+                'name': 'Ocean',
+                'color': Fore.BLUE,
+                'game_index': 2,
+                'unlock_level': 5,
+                'x': 8,
+                'y': 1
+            },
+            'D': {
+                'name': 'Deep Sea',
+                'color': Fore.LIGHTBLUE_EX,
+                'game_index': 3,
+                'unlock_level': 10,
+                'x': 21,
+                'y': 5
+            },
+            'V': {
+                'name': 'Volcanic Lake',
+                'color': Fore.LIGHTRED_EX,
+                'game_index': 4,
+                'unlock_level': 20,
+                'x': 10,
+                'y': 5
+            },
+            'A': {
+                'name': 'Arctic Waters',
+                'color': Fore.CYAN,
+                'game_index': 5,
+                'unlock_level': 25,
+                'x': 19,
+                'y': 1
+            },
+            'S': {
+                'name': 'Space Station',
+                'color': Fore.LIGHTMAGENTA_EX,
+                'game_index': 6,
+                'unlock_level': 30,
+                'x': 12,
+                'y': 7
+            }
+        }
+        
+        # Set map references
+        for key, loc_data in self.locations.items():
+            if key != 'H':  # Hub Island has no separate map
+                loc_data['map'] = LOCATIONS[loc_data['game_index']].map
+    
+    def get_location_at(self, x, y):
+        """Get location data at given coordinates"""
+        for tile_char, loc in self.locations.items():
+            if 'x' in loc and 'y' in loc and loc['x'] == x and loc['y'] == y:
+                return loc
+        return None
+    
+    def is_location_unlocked(self, location):
+        """Check if player has unlocked this location"""
+        return self.game.level >= location['unlock_level']
+    
+    def move_player(self, dx, dy):
+        """Move player on world map"""
+        new_x = self.player_x + dx
+        new_y = self.player_y + dy
+        
+        # Check bounds
+        if 0 <= new_y < len(self.layout) and 0 <= new_x < len(self.layout[0]):
+            self.player_x = new_x
+            self.player_y = new_y
+            
+            # Check if standing on a location
+            location = self.get_location_at(new_x, new_y)
+            if location:
+                status = "✓ Unlocked" if self.is_location_unlocked(location) else f"🔒 Requires Level {location['unlock_level']}"
+                self.message = f"{location['name']} - {status}. Press [E] to enter!"
+            else:
+                self.message = "Navigate to a location and press [E] to travel there!"
+    
+    def render_tile(self, tile, is_player=False):
+        """Render a single tile with appropriate color"""
+        if is_player:
+            return Fore.YELLOW + "⛵" + Style.RESET_ALL
+        elif tile in self.locations:
+            loc = self.locations[tile]
+            is_unlocked = self.is_location_unlocked(loc)
+            color = loc['color'] if is_unlocked else Fore.LIGHTBLACK_EX
+            
+            # Use emoji/symbol from layout
+            if tile == 'H':
+                symbol = "🏝️"
+            elif tile == 'O':
+                symbol = "🌊"
+            elif tile == 'D':
+                symbol = "🌊"
+            elif tile == 'V':
+                symbol = "🌋"
+            elif tile == 'A':
+                symbol = "❄️"
+            elif tile == 'S':
+                symbol = "🚀"
+            else:
+                symbol = tile
+                
+            return color + symbol + Style.RESET_ALL
+        elif tile == '~':
+            return Fore.LIGHTBLUE_EX + "~" + Style.RESET_ALL
+        else:
+            return tile
+    
+    def render_overworld(self, clear_func):
+        """Render the world map"""
+        clear_func()
+        
+        print(Fore.CYAN + "╔════════════════════════════════════════════╗" + Style.RESET_ALL)
+        print(Fore.CYAN + "║            🗺️  WORLD MAP 🗺️               ║" + Style.RESET_ALL)
+        print(Fore.CYAN + "╚════════════════════════════════════════════╝" + Style.RESET_ALL)
+        print()
+        
+        # Render map
+        for y, row in enumerate(self.layout):
+            line = ""
+            for x, tile in enumerate(row):
+                is_player = (x == self.player_x and y == self.player_y)
+                
+                # Handle multi-character emojis in layout
+                if tile in ['🌊', '🏝️', '🌋', '❄️', '🚀']:
+                    if is_player:
+                        line += Fore.YELLOW + "⛵" + Style.RESET_ALL
+                    else:
+                        # Find which location this emoji represents
+                        for loc_char, loc_data in self.locations.items():
+                            if 'x' in loc_data and loc_data['x'] == x and loc_data['y'] == y:
+                                is_unlocked = self.is_location_unlocked(loc_data)
+                                color = loc_data['color'] if is_unlocked else Fore.LIGHTBLACK_EX
+                                line += color + tile + Style.RESET_ALL
+                                break
+                        else:
+                            line += tile
+                else:
+                    line += self.render_tile(tile, is_player)
+            print(line)
+        
+        print()
+        print(Fore.GREEN + f"Level: {self.game.level} | XP: {self.game.xp}/{self.game.xp_threshold} | Money: ${self.game.money}" + Style.RESET_ALL)
+        print()
+        print(Fore.YELLOW + self.message + Style.RESET_ALL)
+        print()
+        print(Fore.CYAN + "Locations:" + Style.RESET_ALL)
+        for tile_char, loc in self.locations.items():
+            if tile_char == 'H':  # Skip Hub Island
+                continue
+            is_unlocked = self.is_location_unlocked(loc)
+            status = f"{Fore.GREEN}✓" if is_unlocked else f"{Fore.RED}🔒 Lvl{loc['unlock_level']}"
+            color = loc['color'] if is_unlocked else Fore.LIGHTBLACK_EX
+            print(f"  {color}{loc['name']:20s}{Style.RESET_ALL} {status}{Style.RESET_ALL}")
+        
+        print()
+        print(Fore.WHITE + "[WASD] Move | [E] Enter Location | [Q] Return to Hub Island" + Style.RESET_ALL)
+    
+    def run(self):
+        """Main world map navigation loop"""
+        while True:
+            self.render_overworld(self.game.clear_screen)
+            
+            key = get_key()
+            
+            if key == 'w':
+                self.move_player(0, -1)
+            elif key == 's':
+                self.move_player(0, 1)
+            elif key == 'a':
+                self.move_player(-1, 0)
+            elif key == 'd':
+                self.move_player(1, 0)
+            elif key == 'e':
+                # Try to enter a location
+                location = self.get_location_at(self.player_x, self.player_y)
+                if location:
+                    if location['name'] == 'Hub Island':
+                        self.message = "You're already at Hub Island!"
+                    elif self.is_location_unlocked(location):
+                        self.game.current_location = LOCATIONS[location['game_index']]
+                        print(Fore.GREEN + f"Traveling to {location['name']}..." + Style.RESET_ALL)
+                        time.sleep(1)
+                        # Return the location to enter
+                        return LOCATIONS[location['game_index']]
+                    else:
+                        self.message = f"🔒 {location['name']} is locked! Requires level {location['unlock_level']} (You: Lvl {self.game.level})"
+                else:
+                    self.message = "Nothing to enter here. Navigate to a location!"
+            elif key == 'q':
+                return None  # Return to hub island
+
 
 
 # ===== GAME CLASS =====
@@ -1564,42 +1791,9 @@ class Game:
                 time.sleep(1)
     
     def visit_dock(self):
-        """Dock - travel to other locations"""
-        self.clear_screen()
-        print(Fore.LIGHTCYAN_EX + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
-        print(Fore.LIGHTCYAN_EX + "║             ⚓ DOCK ⚓                  ║" + Style.RESET_ALL)
-        print(Fore.LIGHTCYAN_EX + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
-        print()
-        print(Fore.YELLOW + "Travel to distant fishing grounds:" + Style.RESET_ALL)
-        print()
-        
-        for i, loc in enumerate(LOCATIONS[2:], 1):  # Skip hub island locations
-            locked = f"🔒 Lvl{loc.unlock_level}" if self.level < loc.unlock_level else "✓"
-            print(f"{i}. {loc.name} - {locked}")
-            print(f"   {loc.description}")
-        
-        print()
-        print(Fore.WHITE + "Select destination (number) or 0 to cancel: " + Style.RESET_ALL)
-        
-        choice = input(Fore.CYAN + "Choice: " + Style.RESET_ALL)
-        
-        try:
-            idx = int(choice) - 1
-            if 0 <= idx < len(LOCATIONS[2:]):
-                destination = LOCATIONS[2 + idx]
-                if self.level >= destination.unlock_level:
-                    self.current_location = destination
-                    print(Fore.GREEN + f"Traveling to {destination.name}..." + Style.RESET_ALL)
-                    time.sleep(1)
-                    # Enter that location's map
-                    return destination
-                else:
-                    print(Fore.RED + f"Requires level {destination.unlock_level}!" + Style.RESET_ALL)
-                    time.sleep(1)
-        except ValueError:
-            pass
-        
-        return None
+        """Dock - travel to other locations via world map"""
+        world_map = WorldMap(self)
+        return world_map.run()
     
     def hub_island_interaction(self, building_type):
         """Handle interactions with buildings on hub island"""
