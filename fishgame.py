@@ -1461,7 +1461,7 @@ class Game:
         print(Fore.YELLOW + "\n🎣 Something's biting!" + Style.RESET_ALL)
         time.sleep(0.5)
         
-        minigame_choice = random.choice([button_mashing_minigame, timing_minigame])
+        minigame_choice = random.choice([button_mashing_minigame, timing_minigame, pattern_minigame])
         success = minigame_choice(self.stats['patience'])
         
         if not success:
