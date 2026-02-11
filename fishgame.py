@@ -570,7 +570,19 @@ def get_key():
     """Cross-platform key input"""
     if platform.system() == 'Windows':
         import msvcrt
-        return msvcrt.getch().decode('utf-8').lower()
+        key = msvcrt.getch()
+        
+        # Handle special keys (arrow keys, function keys, etc.)
+        if key in [b'\x00', b'\xe0']:  # Special key prefix
+            # Read the second byte and ignore it
+            msvcrt.getch()
+            return ''  # Return empty string for special keys
+        
+        try:
+            return key.decode('utf-8').lower()
+        except UnicodeDecodeError:
+            # If we can't decode it, just ignore it
+            return ''
     else:
         import tty, termios
         fd = sys.stdin.fileno()
@@ -2017,4 +2029,3 @@ if __name__ == "__main__":
 
     else:
         print(Fore.RED + "Invalid choice." + Style.RESET_ALL)
-
