@@ -139,10 +139,336 @@ DID_YOU_KNOW_FACTS = [
     "The Aquarium displays all your trophy catches!",
     "Complete quests for rare rewards and unlock new locations!",
     "The dock connects you to distant fishing grounds!",
+    "Boss fights can be triggered using special items found while fishing!",
+    "Sparing bosses gives you positive karma - killing them gives negative karma!",
+    "Each location has a unique boss waiting to be discovered!",
 ]
 
 def get_random_fact():
     return random.choice(DID_YOU_KNOW_FACTS)
+
+
+# ===== BOSS FIGHT SYSTEM =====
+class Boss:
+    def __init__(self, name, hp, defense, attacks, ascii_art, dialogue, spare_threshold=50):
+        self.name = name
+        self.max_hp = hp
+        self.hp = hp
+        self.defense = defense
+        self.attacks = attacks  # List of attack patterns
+        self.ascii_art = ascii_art
+        self.dialogue = dialogue  # Dict with different dialogue states
+        self.spare_threshold = spare_threshold  # HP % when boss can be spared
+        self.mercy_level = 0  # Increases when you ACT
+        self.is_spareable = False
+        
+    def take_damage(self, damage):
+        actual_damage = max(1, damage - self.defense)
+        self.hp -= actual_damage
+        if self.hp < 0:
+            self.hp = 0
+        
+        # Check if spareable
+        hp_percent = (self.hp / self.max_hp) * 100
+        if hp_percent <= self.spare_threshold and self.mercy_level >= 3:
+            self.is_spareable = True
+            
+        return actual_damage
+    
+    def get_dialogue(self, state="default"):
+        return self.dialogue.get(state, self.dialogue.get("default", ["..."]))
+    
+    def get_random_attack(self):
+        return random.choice(self.attacks)
+
+class BossAttack:
+    def __init__(self, name, pattern_func, damage_range, description):
+        self.name = name
+        self.pattern_func = pattern_func  # Function that generates attack pattern
+        self.damage_range = damage_range  # (min, max)
+        self.description = description
+    
+    def execute(self):
+        return self.pattern_func()
+
+# ===== BOSS ATTACK PATTERNS =====
+def loch_ness_wave_attack():
+    """Water wave pattern - player must dodge moving characters"""
+    pattern_length = 40
+    safe_spots = []
+    
+    # Animated wave approach
+    print(Fore.CYAN + "\n💧 Waves incoming! 💧\n" + Style.RESET_ALL)
+    
+    # Show 3 animated waves approaching
+    for wave_num in range(3):
+        wave_pos = random.randint(0, pattern_length - 10)
+        
+        # Animate wave moving across screen
+        for frame in range(10):
+            pattern = [' '] * pattern_length
+            # Create wave shape
+            wave_start = max(0, wave_pos - 2 + frame)
+            wave_end = min(pattern_length, wave_pos + 10 + frame)
+            
+            for i in range(wave_start, wave_end):
+                if i < pattern_length:
+                    # Wave characters with varying heights
+                    offset = abs((i - wave_start) - 5)
+                    if offset == 0:
+                        pattern[i] = '≋'
+                    elif offset <= 2:
+                        pattern[i] = '~'
+                    else:
+                        pattern[i] = '˜'
+            
+            # Color the waves blue
+            display = Fore.CYAN + "[" + ''.join(pattern) + "]" + Style.RESET_ALL
+            sys.stdout.write("\r" + display)
+            sys.stdout.flush()
+            time.sleep(0.05)
+        
+        print()  # New line after wave
+        
+        # Track final wave position for safe spots
+        for i in range(pattern_length):
+            if i < wave_pos or i >= wave_pos + 8:
+                safe_spots.append(i)
+    
+    # Player dodges
+    print()
+    print(Fore.YELLOW + "Choose a safe position to dodge (0-39):" + Style.RESET_ALL)
+    try:
+        player_pos = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
+        if 0 <= player_pos <= pattern_length and player_pos in safe_spots:
+            print(Fore.GREEN + "✓ Perfect dodge!" + Style.RESET_ALL)
+            time.sleep(0.5)
+            return 0
+        else:
+            # Show hit animation
+            for _ in range(3):
+                print(Fore.RED + "💥 SPLASH! 💥" + Style.RESET_ALL)
+                time.sleep(0.1)
+                sys.stdout.write("\r" + " " * 20 + "\r")
+                sys.stdout.flush()
+                time.sleep(0.1)
+            print(Fore.RED + "You got hit by the wave!" + Style.RESET_ALL)
+            return random.randint(10, 20)
+    except:
+        print(Fore.RED + "Invalid input! You got hit!" + Style.RESET_ALL)
+        return random.randint(10, 20)
+
+def loch_ness_neck_slam():
+    """Long neck slam - timing based dodge with animation"""
+    # Show neck rising animation
+    print(Fore.YELLOW + "\n🐉 The Loch Ness Monster's neck is rising...\n" + Style.RESET_ALL)
+    
+    neck_frames = [
+        "                    |",
+        "                   /|\\",
+        "                  / | \\",
+        "                 /  |  \\",
+        "                /   👁   \\",
+    ]
+    
+    for frame in neck_frames:
+        print(Fore.GREEN + frame + Style.RESET_ALL)
+        time.sleep(0.3)
+    
+    print()
+    print(Fore.RED + "⚠️  IT'S COMING DOWN! ⚠️" + Style.RESET_ALL)
+    print()
+    
+    # Visual countdown
+    for i in range(3, 0, -1):
+        sys.stdout.write(Fore.YELLOW + f"\r   {i}...   " + Style.RESET_ALL)
+        sys.stdout.flush()
+        time.sleep(0.5)
+    
+    print()
+    
+    # Quick time event
+    print(Fore.CYAN + "Press ENTER to dodge NOW!" + Style.RESET_ALL)
+    start_time = time.time()
+    
+    if platform.system() == "Windows":
+        import msvcrt
+        start = time.time()
+        while time.time() - start < 1.5:
+            if msvcrt.kbhit():
+                msvcrt.getch()
+                elapsed = time.time() - start
+                if 0.3 < elapsed < 1.2:
+                    # Perfect dodge animation
+                    for _ in range(2):
+                        print(Fore.GREEN + "★ PERFECT DODGE! ★" + Style.RESET_ALL)
+                        time.sleep(0.1)
+                    return 0
+                else:
+                    print(Fore.YELLOW + "Partial dodge!" + Style.RESET_ALL)
+                    return random.randint(5, 10)
+        # Impact animation
+        for _ in range(3):
+            print(Fore.RED + "💥 SLAM! 💥" + Style.RESET_ALL)
+            time.sleep(0.1)
+            sys.stdout.write("\r" + " " * 20 + "\r")
+            sys.stdout.flush()
+            time.sleep(0.1)
+        print(Fore.RED + "You got slammed!" + Style.RESET_ALL)
+        return random.randint(15, 25)
+    else:
+        # Simplified for Unix systems
+        try:
+            import select
+            start = time.time()
+            print(Fore.CYAN + "Quick! Press ENTER!" + Style.RESET_ALL)
+            
+            # Wait for input with timeout
+            rlist, _, _ = select.select([sys.stdin], [], [], 1.5)
+            if rlist:
+                sys.stdin.readline()
+                elapsed = time.time() - start
+                if 0.3 < elapsed < 1.2:
+                    print(Fore.GREEN + "★ PERFECT DODGE! ★" + Style.RESET_ALL)
+                    return 0
+                else:
+                    print(Fore.YELLOW + "Close dodge!" + Style.RESET_ALL)
+                    return random.randint(0, 5)
+            else:
+                print(Fore.RED + "Too slow! 💥" + Style.RESET_ALL)
+                return random.randint(15, 25)
+        except:
+            print(Fore.RED + "You got hit!" + Style.RESET_ALL)
+            return random.randint(15, 25)
+
+def loch_ness_water_blast():
+    """Multiple choice dodge with charging animation"""
+    print(Fore.CYAN + "\n💦 The monster is charging a water blast! 💦\n" + Style.RESET_ALL)
+    
+    # Charging animation
+    charging_frames = [
+        "  (  )",
+        "  ( O )",
+        "  ( ⚡ )",
+        "  (💧💧)",
+        "  (💦💦)",
+    ]
+    
+    for frame in charging_frames:
+        sys.stdout.write("\r" + Fore.LIGHTBLUE_EX + frame + Style.RESET_ALL)
+        sys.stdout.flush()
+        time.sleep(0.3)
+    
+    print("\n")
+    
+    print(Fore.YELLOW + "Which way do you dodge?" + Style.RESET_ALL)
+    print(Fore.WHITE + "1. ⬅️  Left   2. ➡️  Right   3. ⬆️  Jump   4. ⬇️  Duck" + Style.RESET_ALL)
+    
+    correct = random.randint(1, 4)
+    hints = {
+        1: "💭 You see ripples to the right...", 
+        2: "💭 You see ripples to the left...",
+        3: "💭 The blast is aimed low...",
+        4: "💭 The blast is aimed high..."
+    }
+    
+    print(Fore.LIGHTBLACK_EX + hints[correct] + Style.RESET_ALL)
+    print()
+    
+    try:
+        choice = int(input(Fore.GREEN + "Choice > " + Style.RESET_ALL))
+        
+        # Blast animation
+        print()
+        for i in range(5):
+            blast = "💦" * (i + 1)
+            sys.stdout.write("\r" + Fore.CYAN + f"BLAST! {blast}" + Style.RESET_ALL)
+            sys.stdout.flush()
+            time.sleep(0.1)
+        print()
+        
+        if choice == correct:
+            # Success animation
+            for _ in range(2):
+                print(Fore.GREEN + "✨ PERFECT DODGE! ✨" + Style.RESET_ALL)
+                time.sleep(0.1)
+            return 0
+        else:
+            # Hit animation
+            for _ in range(3):
+                print(Fore.RED + "💥 SPLASH! 💥" + Style.RESET_ALL)
+                time.sleep(0.1)
+                sys.stdout.write("\r" + " " * 20 + "\r")
+                sys.stdout.flush()
+                time.sleep(0.1)
+            print(Fore.RED + "Direct hit!" + Style.RESET_ALL)
+            return random.randint(12, 18)
+    except:
+        print(Fore.RED + "Invalid input! You got blasted!" + Style.RESET_ALL)
+        return random.randint(12, 18)
+
+# ===== BOSS DEFINITIONS =====
+LOCH_NESS_ASCII = """
+                                  ___
+                              .-'   `'.
+                             /         \\
+                             |         ;
+                             |         |           ___.--,
+                    _.._     |0) ~ (0) |    _.---'`__.-( (_.
+             __.--'`_.. '.__.\    '--. \_.-' ,.--'`     `""`
+            ( ,.--'`   ',__ /./;   ;, '.__.'`    __
+            _`) )  .---.__.' / |   |\\   \\__..--""  \"\"\"--.,_
+           `---' .'.''-._.-'`_./  /\\ '.  \\ _.-~~~````~~~-._`-.__.'
+                 | |  .' _.-' |  |  \\  \\  '.               `~---`
+                  \\ \\/ .'     \\  \\   '. '-._)
+                   \\/ /        \\  \\    `=.__`~-.
+                   / /\\         `) )    / / `"".`\\
+             , _.-'.'\\ \\        / /    ( (     / /
+              `--~`   ) )    .-'.'      '.'.  | (
+                     (/`    ( (`          ) )  '-;
+                      `      '-;         (-'
+"""
+
+LOCH_NESS_MONSTER = Boss(
+    name="Loch Ness Monster",
+    hp=200,
+    defense=5,
+    attacks=[
+        BossAttack("Wave Crash", loch_ness_wave_attack, (10, 20), "Sends powerful waves"),
+        BossAttack("Neck Slam", loch_ness_neck_slam, (15, 25), "Slams with its long neck"),
+        BossAttack("Water Blast", loch_ness_water_blast, (12, 18), "Fires a concentrated water jet")
+    ],
+    ascii_art=LOCH_NESS_ASCII,
+    dialogue={
+        "intro": ["*The water trembles...*", "*A massive shape rises from the depths!*", "*The Loch Ness Monster emerges!*"],
+        "default": ["*The monster watches you carefully*", "*It circles in the water*", "*Steam rises from its nostrils*"],
+        "hit": ["*It roars in pain!*", "*The monster thrashes!*", "*Waves splash everywhere!*"],
+        "low_hp": ["*The monster looks tired*", "*It's breathing heavily*", "*Maybe it doesn't want to fight...*"],
+        "merciful": ["*The monster seems calmer*", "*It's listening to you*", "*You sense it doesn't want conflict*"],
+        "spare_ready": ["*The Loch Ness Monster can be SPARED*"],
+        "spared": ["*The monster nods gratefully*", "*It sinks back into the depths peacefully*", "*You feel warmth in your heart*"],
+        "killed": ["*The legendary creature falls...*", "*The water turns red*", "*You feel a weight in your chest*"]
+    },
+    spare_threshold=40
+)
+
+# Boss item that triggers the fight
+class BossItem:
+    def __init__(self, name, boss, description, location):
+        self.name = name
+        self.boss = boss
+        self.description = description
+        self.location = location  # Which area it's found in
+
+BOSS_ITEMS = {
+    "Ancient Scale": BossItem(
+        "Ancient Scale",
+        LOCH_NESS_MONSTER,
+        "A shimmering scale from an ancient creature. Using it might summon something...",
+        "Hub Island - Calm Lake"
+    ),
+    # Add more boss items for other locations here
+}
 
 
 # ===== MODELS =====
@@ -776,6 +1102,131 @@ def stardew_valley_minigame(patience_stat):
     return False
 
 
+def undertale_attack_minigame(strength_stat, difficulty_name="Normal"):
+    """Undertale-style attack timing bar - returns damage multiplier (0.5 to 2.0)
+    Difficulty affects zone size and speed"""
+    print()
+    print(Fore.YELLOW + "⚔️  ATTACK! Press SPACE at the right moment! ⚔️" + Style.RESET_ALL)
+    print()
+    
+    bar_width = 30
+    
+    # Adjust zones based on difficulty
+    if difficulty_name == "Easy":
+        # Bigger zones, easier timing
+        perfect_zone_start = 12
+        perfect_zone_end = 18
+        good_zone_start = 8
+        good_zone_end = 22
+    elif difficulty_name == "Hard":
+        # Smaller zones, harder timing
+        perfect_zone_start = 14
+        perfect_zone_end = 16
+        good_zone_start = 12
+        good_zone_end = 18
+    else:  # Normal
+        # Medium zones
+        perfect_zone_start = 13
+        perfect_zone_end = 17
+        good_zone_start = 10
+        good_zone_end = 20
+    
+    position = 0
+    direction = 1
+    
+    # Make the bar move faster with higher strength AND difficulty
+    base_speed = 0.08 - (strength_stat * 0.003)
+    
+    # Adjust speed by difficulty
+    if difficulty_name == "Easy":
+        speed = base_speed * 1.3  # Slower
+    elif difficulty_name == "Hard":
+        speed = base_speed * 0.7  # Faster!
+    else:
+        speed = base_speed
+    
+    speed = max(0.03, min(0.12, speed))  # Clamp speed
+    
+    for frame in range(60):  # 60 frames
+        # Build the attack bar
+        bar = ['─'] * bar_width
+        
+        # Color the zones
+        for i in range(good_zone_start, good_zone_end):
+            bar[i] = '░'
+        for i in range(perfect_zone_start, perfect_zone_end):
+            bar[i] = '█'
+        
+        # Place the cursor
+        bar[position] = '▼'
+        
+        # Display with colors
+        display_bar = ""
+        for i, char in enumerate(bar):
+            if i == position:
+                display_bar += Fore.YELLOW + char + Style.RESET_ALL
+            elif perfect_zone_start <= i < perfect_zone_end:
+                display_bar += Fore.GREEN + char + Style.RESET_ALL
+            elif good_zone_start <= i < good_zone_end:
+                display_bar += Fore.CYAN + char + Style.RESET_ALL
+            else:
+                display_bar += Fore.WHITE + char + Style.RESET_ALL
+        
+        sys.stdout.write('\r[' + display_bar + ']')
+        sys.stdout.flush()
+        
+        # Check for input
+        if platform.system() == 'Windows':
+            import msvcrt
+            if msvcrt.kbhit():
+                key = msvcrt.getch()
+                if key == b' ':
+                    print()
+                    if perfect_zone_start <= position < perfect_zone_end:
+                        # Perfect hit!
+                        for _ in range(3):
+                            print(Fore.GREEN + "★★★ CRITICAL HIT! ★★★" + Style.RESET_ALL)
+                            time.sleep(0.08)
+                            sys.stdout.write("\r" + " " * 40 + "\r")
+                            sys.stdout.flush()
+                            time.sleep(0.08)
+                        print(Fore.GREEN + "★★★ CRITICAL HIT! ★★★" + Style.RESET_ALL)
+                        return 2.0  # Double damage!
+                    elif good_zone_start <= position < good_zone_end:
+                        print(Fore.CYAN + "✓ Good hit!" + Style.RESET_ALL)
+                        return 1.5  # 1.5x damage
+                    else:
+                        print(Fore.YELLOW + "○ Weak hit..." + Style.RESET_ALL)
+                        return 0.8  # Reduced damage
+        else:
+            # Unix-like systems
+            import select
+            if select.select([sys.stdin], [], [], 0)[0]:
+                key = sys.stdin.read(1)
+                if key == ' ':
+                    print()
+                    if perfect_zone_start <= position < perfect_zone_end:
+                        print(Fore.GREEN + "★★★ CRITICAL HIT! ★★★" + Style.RESET_ALL)
+                        return 2.0
+                    elif good_zone_start <= position < good_zone_end:
+                        print(Fore.CYAN + "✓ Good hit!" + Style.RESET_ALL)
+                        return 1.5
+                    else:
+                        print(Fore.YELLOW + "○ Weak hit..." + Style.RESET_ALL)
+                        return 0.8
+        
+        time.sleep(speed)
+        position += direction
+        if position >= bar_width or position < 0:
+            direction *= -1
+            position += direction * 2
+    
+    # Time ran out - miss
+    print()
+    print(Fore.RED + "✗ Miss! Too slow!" + Style.RESET_ALL)
+    return 0.5  # Half damage for missing
+
+
 # ===== LOCATION MAP CLASS =====
 class LocationMap:
     def __init__(self, name, layout, description=""):
@@ -1300,6 +1751,9 @@ class Game:
         
         # Inventory
         self.inventory = []
+        self.boss_inventory = []  # NEW: Separate inventory for boss items
+        self.karma = 0  # NEW: Karma system (positive for sparing, negative for killing)
+        self.defeated_bosses = []  # NEW: Track defeated bosses
         self.owned_rods = [RODS[0]]
         self.owned_baits = [BAITS[0]]
         self.current_rod = RODS[0]
@@ -1320,6 +1774,10 @@ class Game:
         # Quests
         self.active_quests = []
         self.completed_quests = []
+        
+        # Player HP for boss fights
+        self.max_hp = 100
+        self.current_hp = 100
         
         # Debug
         self.debug_mode = False
@@ -1503,6 +1961,20 @@ class Game:
         
         # Choose fish
         caught_fish = self.choose_fish()
+
+        if random.random() < 0.05:  # 5% chance
+            location_name = self.current_location.name
+            boss_item = None
+            for item_name, item in BOSS_ITEMS.items():
+                if item.location == location_name:
+                    boss_item = item
+                    break
+            
+            if boss_item and boss_item.name not in [i.name for i in self.boss_inventory]:
+                self.boss_inventory.append(boss_item)
+                print(Fore.MAGENTA + f"\n⚡ You found a special item: {boss_item.name}! ⚡" + Style.RESET_ALL)
+                print(Fore.YELLOW + boss_item.description + Style.RESET_ALL)
+                time.sleep(2)
         
         # Create a fresh instance
         caught_fish = Fish(
@@ -1586,47 +2058,67 @@ class Game:
         get_key()
     
     def view_inventory(self):
-        """Display player inventory"""
+        """Display player inventory (fish + boss items)"""
         self.clear_screen()
+
+        # Header
         print(Fore.CYAN + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
         print(Fore.CYAN + "║             INVENTORY                 ║" + Style.RESET_ALL)
         print(Fore.CYAN + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
         print()
-        
-        if not self.inventory:
+
+        # Empty check
+        if not self.inventory and not self.boss_inventory:
             print(Fore.YELLOW + "Your inventory is empty. Go fishing!" + Style.RESET_ALL)
-        else:
+            print()
+            input(Fore.CYAN + "Press Enter to go back..." + Style.RESET_ALL)
+            return
+
+        # === FISH INVENTORY ===
+        if self.inventory:
+            print(Fore.GREEN + "=== FISH ===" + Style.RESET_ALL)
             for i, fish in enumerate(self.inventory, 1):
-                print(f"{i}. {fish} - ${fish.sell_price}")
-        
-        print()
-        print(Fore.GREEN + f"Total value: ${sum(f.sell_price for f in self.inventory)}" + Style.RESET_ALL)
-        print()
-        print(Fore.WHITE + "1. Sell all fish" + Style.RESET_ALL)
-        print(Fore.WHITE + "2. Add a trophy fish to aquarium" + Style.RESET_ALL)
-        print(Fore.WHITE + "3. Back" + Style.RESET_ALL)
-        
-        choice = input(Fore.CYAN + "\nChoice: " + Style.RESET_ALL)
-        
-        if choice == '1':
-            total = sum(f.sell_price for f in self.inventory)
-            total = int(total * self.difficulty_mult)
-            self.money += total
-            print(Fore.GREEN + f"Sold all fish for ${total}!" + Style.RESET_ALL)
-            self.inventory = []
-            time.sleep(1)
-        elif choice == '2':
-            if self.inventory:
-                print(Fore.CYAN + "Select fish to add to aquarium (number): " + Style.RESET_ALL)
-                try:
-                    idx = int(input()) - 1
-                    trophy_fish = self.inventory.pop(idx)
-                    self.trophy_room.append(trophy_fish)
-                    print(Fore.GREEN + f"Added {trophy_fish.name} to your aquarium!" + Style.RESET_ALL)
-                    time.sleep(1)
-                except:
-                    print(Fore.RED + "Invalid choice!" + Style.RESET_ALL)
-                    time.sleep(1)
+                mutation_str = (
+                    f"[{fish.mutation.upper()}]" if getattr(fish, "mutation", "normal") != "normal" else ""
+                )
+                print(
+                    Fore.WHITE
+                    + f"{i}. {fish.name} {mutation_str} - "
+                    f"{fish.weight:.2f}kg - ${fish.sell_price}"
+                    + Style.RESET_ALL
+                )
+            print()
+
+        # === BOSS ITEMS ===
+        if self.boss_inventory:
+            print(Fore.MAGENTA + "=== BOSS ITEMS ===" + Style.RESET_ALL)
+            for i, item in enumerate(self.boss_inventory, 1):
+                print(Fore.YELLOW + f"{i}. {item.name}" + Style.RESET_ALL)
+                print(Fore.LIGHTBLACK_EX + f"   {item.description}" + Style.RESET_ALL)
+            print()
+
+        # Total fish value
+        if self.inventory:
+            total_value = sum(f.sell_price for f in self.inventory)
+            total_value = int(total_value * self.difficulty_mult)
+            print(Fore.GREEN + f"Total fish value: ${total_value}" + Style.RESET_ALL)
+            print()
+
+        # Options
+        print(Fore.CYAN + "Options:" + Style.RESET_ALL)
+        print(Fore.WHITE + "[S]ell Fish | [K]eep as Trophy | [U]se Boss Item | [B]ack" + Style.RESET_ALL)
+
+        choice = input(Fore.GREEN + "> " + Style.RESET_ALL).lower()
+
+        if choice == 's':
+            self.sell_fish()
+        elif choice == 'k':
+            self.keep_trophy()
+        elif choice == 'u':
+            self.use_boss_item()
+        elif choice == 'b':
+            return
+
     
     def visit_shop(self):
         """Shop menu"""
@@ -1910,7 +2402,12 @@ class Game:
             print(Fore.YELLOW + hub_map.message + Style.RESET_ALL)
             print()
             print(Fore.WHITE + "🏪 Shop | 🏛️ Aquarium | 📋 Quests | 🏠 Home | ⚓ Dock | ⊙ Fish Spot | ◉ Golden Spot" + Style.RESET_ALL)
-            print(Fore.WHITE + "[WASD] Move | [E] Interact | [I] Inventory | [C] Stats | [Q] Quit" + Style.RESET_ALL)
+            if self.debug_mode:
+                    print(Fore.MAGENTA + "[DEV] [B]oss Menu | [WASD] Move | [E] Interact | [I] Inventory | [C] Stats | [Q] Quit" + Style.RESET_ALL)
+            else:
+                print(Fore.WHITE + "[WASD] Move | [E] Interact | [I] Inventory | [C] Stats | [Q] Quit" + Style.RESET_ALL)
+            
+            
             
             # Get input
             key = get_key()
@@ -1958,6 +2455,8 @@ class Game:
             elif key == 'q':
                 print(Fore.YELLOW + "\nThanks for playing! 🎣" + Style.RESET_ALL)
                 break
+            elif key == 'b' and self.debug_mode:
+                self.dev_boss_menu()
     
     def explore_remote_location(self, location):
         """Explore a remote location (Ocean, Deep Sea, etc.)"""
@@ -2012,14 +2511,394 @@ class Game:
                 self.current_location = LOCATIONS[0]
                 break
 
+    def start_boss_fight(self, boss):
+        """Undertale-style boss fight system"""
+        self.clear_screen()
+        
+        # Reset boss HP for new fight
+        boss.hp = boss.max_hp
+        boss.mercy_level = 0
+        boss.is_spareable = False
+        
+        # Reset player HP
+        self.current_hp = self.max_hp
+        
+        # Dramatic entrance animation
+        print()
+        print()
+        for _ in range(3):
+            print(Fore.RED + "!" * 60 + Style.RESET_ALL)
+            time.sleep(0.2)
+            sys.stdout.write("\r" + " " * 60 + "\r")
+            sys.stdout.flush()
+            time.sleep(0.2)
+        
+        print()
+        
+        # Show boss appearing line by line
+        print(Fore.RED + "=" * 60 + Style.RESET_ALL)
+        boss_lines = boss.ascii_art.split('\n')
+        for line in boss_lines:
+            print(Fore.YELLOW + line + Style.RESET_ALL)
+            time.sleep(0.08)
+        print(Fore.RED + "=" * 60 + Style.RESET_ALL)
+        print()
+        
+        # Boss name reveal
+        name_frames = [
+            ".",
+            "..",
+            "...",
+            f"... {boss.name[0]}",
+            f"... {boss.name[:5]}",
+            f"... {boss.name[:10]}",
+            f"... {boss.name}!",
+        ]
+        
+        for frame in name_frames:
+            sys.stdout.write("\r" + Fore.RED + frame + Style.RESET_ALL)
+            sys.stdout.flush()
+            time.sleep(0.2)
+        
+        print("\n")
+        
+        for line in boss.get_dialogue("intro"):
+            print(Fore.CYAN + line + Style.RESET_ALL)
+            time.sleep(1)
+        
+        input(Fore.LIGHTBLACK_EX + "\nPress Enter to begin battle..." + Style.RESET_ALL)
+        
+        # Battle loop
+        while boss.hp > 0 and self.current_hp > 0:
+            self.clear_screen()
+            
+            # Display battle status
+            print(Fore.RED + "=" * 60 + Style.RESET_ALL)
+            print(Fore.YELLOW + f"{boss.name}" + Style.RESET_ALL)
+            print(Fore.RED + f"HP: {'❤' * (boss.hp * 20 // boss.max_hp)}{'♡' * (20 - (boss.hp * 20 // boss.max_hp))} {boss.hp}/{boss.max_hp}" + Style.RESET_ALL)
+            if boss.is_spareable:
+                print(Fore.YELLOW + "⭐ * The monster can be SPARED *" + Style.RESET_ALL)
+            print()
+            print(Fore.GREEN + f"You" + Style.RESET_ALL)
+            print(Fore.GREEN + f"HP: {'❤' * (self.current_hp * 20 // self.max_hp)}{'♡' * (20 - (self.current_hp * 20 // self.max_hp))} {self.current_hp}/{self.max_hp}" + Style.RESET_ALL)
+            print(Fore.RED + "=" * 60 + Style.RESET_ALL)
+            print()
+            
+            # Player turn
+            print(Fore.CYAN + "What do you do?" + Style.RESET_ALL)
+            print(Fore.WHITE + "[F]ight | [A]ct | [S]pare | [R]un" + Style.RESET_ALL)
+            
+            action = input(Fore.GREEN + "> " + Style.RESET_ALL).lower()
+            
+            if action == 'f':
+                # Fight with attack animation AND minigame!
+                print()
+                
+                # Undertale-style attack minigame (adjusted by difficulty)
+                damage_multiplier = undertale_attack_minigame(self.stats['strength'], self.difficulty_name)
+                
+                # Show attack animation
+                attack_frames = [
+                    "    ⚔️         ",
+                    "      ⚔️       ",
+                    "        ⚔️     ",
+                    "          ⚔️   ",
+                    "            ⚔️ ",
+                    "          💥  ",
+                ]
+                
+                for frame in attack_frames:
+                    sys.stdout.write("\r" + Fore.YELLOW + frame + Style.RESET_ALL)
+                    sys.stdout.flush()
+                    time.sleep(0.1)
+                
+                print()
+                
+                # Calculate damage with multiplier from minigame
+                base_damage = random.randint(15, 25) + (self.stats['strength'] * 2)
+                damage = int(base_damage * damage_multiplier)
+                actual_damage = boss.take_damage(damage)
+                
+                # Flash damage number with color based on hit quality
+                damage_color = Fore.RED
+                if damage_multiplier >= 2.0:
+                    damage_color = Fore.LIGHTMAGENTA_EX  # Critical
+                elif damage_multiplier >= 1.5:
+                    damage_color = Fore.YELLOW  # Good
+                elif damage_multiplier < 1.0:
+                    damage_color = Fore.LIGHTBLACK_EX  # Weak
+                
+                for _ in range(2):
+                    print(damage_color + f"        -{actual_damage} HP!" + Style.RESET_ALL)
+                    time.sleep(0.1)
+                    sys.stdout.write("\r" + " " * 30 + "\r")
+                    sys.stdout.flush()
+                    time.sleep(0.1)
+                
+                print(damage_color + f"You dealt {actual_damage} damage!" + Style.RESET_ALL)
+                time.sleep(0.8)
+                
+                # Boss reaction
+                for line in boss.get_dialogue("hit"):
+                    print(Fore.YELLOW + line + Style.RESET_ALL)
+                    time.sleep(0.8)
+                
+            elif action == 'a':
+                # Act (mercy option)
+                print()
+                print(Fore.CYAN + "You try to calm the monster..." + Style.RESET_ALL)
+                boss.mercy_level += 1
+                time.sleep(1)
+                
+                for line in boss.get_dialogue("merciful"):
+                    print(Fore.YELLOW + line + Style.RESET_ALL)
+                    time.sleep(0.8)
+                
+            elif action == 's':
+                # Spare
+                if boss.is_spareable:
+                    # Boss spared - celebration animation!
+                    self.clear_screen()
+                    
+                    # Sparkling mercy animation
+                    mercy_frames = [
+                        "     ✨              ",
+                        "   ✨  ✨            ",
+                        " ✨  💚  ✨          ",
+                        "✨  MERCY  ✨        ",
+                        "  ✨  💚  ✨         ",
+                        "    ✨  ✨           ",
+                        "      ✨             ",
+                    ]
+                    
+                    for frame in mercy_frames:
+                        sys.stdout.write("\r" + Fore.YELLOW + frame + Style.RESET_ALL)
+                        sys.stdout.flush()
+                        time.sleep(0.2)
+                    
+                    print("\n")
+                    
+                    print(Fore.YELLOW + "=" * 60 + Style.RESET_ALL)
+                    for line in boss.get_dialogue("spared"):
+                        print(Fore.GREEN + line + Style.RESET_ALL)
+                        time.sleep(1)
+                    print(Fore.YELLOW + "=" * 60 + Style.RESET_ALL)
+                    
+                    # Rewards for sparing
+                    self.karma += 10
+                    reward_xp = 500
+                    reward_money = 1000
+                    self.gain_xp(reward_xp)
+                    self.money += reward_money
+                    
+                    print()
+                    print(Fore.GREEN + f"You gained {reward_xp} XP and ${reward_money}!" + Style.RESET_ALL)
+                    print(Fore.MAGENTA + f"Karma +10 (Total: {self.karma})" + Style.RESET_ALL)
+                    
+                    # Mark boss as defeated
+                    if boss.name not in self.defeated_bosses:
+                        self.defeated_bosses.append(boss.name)
+                    
+                    input(Fore.LIGHTBLACK_EX + "\nPress Enter to continue..." + Style.RESET_ALL)
+                    return
+                else:
+                    print()
+                    print(Fore.YELLOW + "The monster isn't ready to be spared yet..." + Style.RESET_ALL)
+                    time.sleep(1)
+            
+            elif action == 'r':
+                # Run away
+                if random.random() < 0.5:
+                    print()
+                    print(Fore.YELLOW + "You escaped!" + Style.RESET_ALL)
+                    time.sleep(1)
+                    return
+                else:
+                    print()
+                    print(Fore.RED + "You couldn't escape!" + Style.RESET_ALL)
+                    time.sleep(1)
+            
+            # Check if boss defeated
+            if boss.hp <= 0:
+                # Boss killed - dramatic animation
+                self.clear_screen()
+                
+                # Fading animation
+                defeat_art = """
+                    ╔═══════════════════════════════════╗
+                    ║                                   ║
+                    ║          BOSS DEFEATED            ║
+                    ║                                   ║
+                    ╚═══════════════════════════════════╝
+                """
+                
+                for intensity in range(5):
+                    self.clear_screen()
+                    if intensity % 2 == 0:
+                        print(Fore.RED + defeat_art + Style.RESET_ALL)
+                    else:
+                        print(Fore.LIGHTBLACK_EX + defeat_art + Style.RESET_ALL)
+                    time.sleep(0.2)
+                
+                self.clear_screen()
+                print(Fore.RED + "=" * 60 + Style.RESET_ALL)
+                for line in boss.get_dialogue("killed"):
+                    print(Fore.RED + line + Style.RESET_ALL)
+                    time.sleep(1)
+                print(Fore.RED + "=" * 60 + Style.RESET_ALL)
+                
+                # Negative karma
+                self.karma -= 15
+                reward_xp = 300
+                reward_money = 500
+                self.gain_xp(reward_xp)
+                self.money += reward_money
+                
+                print()
+                print(Fore.GREEN + f"You gained {reward_xp} XP and ${reward_money}." + Style.RESET_ALL)
+                print(Fore.RED + f"Karma -15 (Total: {self.karma})" + Style.RESET_ALL)
+                
+                # Mark boss as defeated
+                if boss.name not in self.defeated_bosses:
+                    self.defeated_bosses.append(boss.name)
+                
+                input(Fore.LIGHTBLACK_EX + "\nPress Enter to continue..." + Style.RESET_ALL)
+                return
+            
+            # Boss turn
+            input(Fore.LIGHTBLACK_EX + "\nPress Enter for enemy attack..." + Style.RESET_ALL)
+            print()
+            print(Fore.RED + f"{boss.name}'s turn!" + Style.RESET_ALL)
+            time.sleep(1)
+            
+            # Get random attack
+            attack = boss.get_random_attack()
+            print(Fore.YELLOW + f"{boss.name} uses {attack.name}!" + Style.RESET_ALL)
+            print(Fore.LIGHTBLACK_EX + attack.description + Style.RESET_ALL)
+            print()
+            time.sleep(1)
+            
+            # Execute attack pattern
+            damage_taken = attack.execute()
+            
+            if damage_taken > 0:
+                self.current_hp -= damage_taken
+                print()
+                
+                # Screen shake effect
+                shake_frames = ["💔", "  💔", "    💔", "  💔", "💔"]
+                for frame in shake_frames:
+                    sys.stdout.write("\r" + Fore.RED + frame + Style.RESET_ALL)
+                    sys.stdout.flush()
+                    time.sleep(0.08)
+                
+                print()
+                
+                # Flash damage
+                for _ in range(3):
+                    print(Fore.RED + f"    YOU TOOK {damage_taken} DAMAGE!" + Style.RESET_ALL)
+                    time.sleep(0.1)
+                    sys.stdout.write("\r" + " " * 40 + "\r")
+                    sys.stdout.flush()
+                    time.sleep(0.1)
+                
+                print(Fore.RED + f"You took {damage_taken} damage!" + Style.RESET_ALL)
+                time.sleep(0.5)
+            
+            # Check low HP dialogue
+            hp_percent = (boss.hp / boss.max_hp) * 100
+            if hp_percent < 40:
+                for line in boss.get_dialogue("low_hp"):
+                    print(Fore.YELLOW + line + Style.RESET_ALL)
+                    time.sleep(0.8)
+            
+            # Check if player defeated
+            if self.current_hp <= 0:
+                self.clear_screen()
+                
+                # Defeat animation
+                defeat_frames = [
+                    "  YOU",
+                    "  YOU  ",
+                    "  YOU   WERE",
+                    "  YOU   WERE   ",
+                    "  YOU   WERE   DEFEATED...",
+                ]
+                
+                for frame in defeat_frames:
+                    sys.stdout.write("\r" + Fore.RED + frame + Style.RESET_ALL)
+                    sys.stdout.flush()
+                    time.sleep(0.3)
+                
+                print("\n")
+                time.sleep(0.5)
+                
+                print(Fore.RED + "=" * 60 + Style.RESET_ALL)
+                print(Fore.RED + "         💀 GAME OVER 💀         " + Style.RESET_ALL)
+                print(Fore.RED + "=" * 60 + Style.RESET_ALL)
+                
+                # Restore HP and return
+                self.current_hp = self.max_hp
+                
+                input(Fore.LIGHTBLACK_EX + "\nPress Enter to continue..." + Style.RESET_ALL)
+                return
+            
+            input(Fore.LIGHTBLACK_EX + "\nPress Enter to continue..." + Style.RESET_ALL)
+    
+    def use_boss_item(self):
+        """Use a boss item to trigger boss fight"""
+        if not self.boss_inventory:
+            print(Fore.YELLOW + "No boss items to use!" + Style.RESET_ALL)
+            return
+        
+        print(Fore.CYAN + "Enter boss item number to use:" + Style.RESET_ALL)
+        choice = input(Fore.GREEN + "> " + Style.RESET_ALL)
+        
+        try:
+            index = int(choice) - 1
+            if 0 <= index < len(self.boss_inventory):
+                boss_item = self.boss_inventory[index]
+                
+                # Check if boss already defeated
+                if boss_item.boss.name in self.defeated_bosses:
+                    print(Fore.YELLOW + f"You've already defeated {boss_item.boss.name}!" + Style.RESET_ALL)
+                    print(Fore.CYAN + "Use the item again? (Y/N)" + Style.RESET_ALL)
+                    retry = input(Fore.GREEN + "> " + Style.RESET_ALL).lower()
+                    if retry != 'y':
+                        return
+                
+                # Remove item and start boss fight
+                self.boss_inventory.pop(index)
+                self.start_boss_fight(boss_item.boss)
+            else:
+                print(Fore.RED + "Invalid number!" + Style.RESET_ALL)
+        except ValueError:
+            print(Fore.RED + "Invalid input!" + Style.RESET_ALL)
+    
+    def dev_boss_menu(self):
+        """DEV MODE: Spawn any boss"""
+        self.clear_screen()
+        print(Fore.MAGENTA + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
+        print(Fore.MAGENTA + "║         [DEV] BOSS SPAWNER            ║" + Style.RESET_ALL)
+        print(Fore.MAGENTA + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
+        print()
+        print(Fore.CYAN + "1. Loch Ness Monster (Lake)" + Style.RESET_ALL)
+        print(Fore.CYAN + "2. [MORE BOSSES COMING SOON]" + Style.RESET_ALL)
+        print(Fore.WHITE + "0. Back" + Style.RESET_ALL)
+        
+        choice = input(Fore.GREEN + "\nSpawn which boss? " + Style.RESET_ALL)
+        
+        if choice == '1':
+            self.start_boss_fight(LOCH_NESS_MONSTER)
+
 
 # ===== MAIN =====
 if __name__ == "__main__":
     show_intro()
     print(Fore.CYAN + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
     print(Fore.CYAN + "║       🎣 FISHING GAME 🎣              ║" + Style.RESET_ALL)
-    print(Fore.CYAN + "║       Hub Island Edition              ║" + Style.RESET_ALL)
-    print(Fore.CYAN + "║         V.0.5.0 BETA                  ║" + Style.RESET_ALL)
+    print(Fore.CYAN + "║       BOSS BATTLES UPDATE             ║" + Style.RESET_ALL)
+    print(Fore.CYAN + "║         V.0.6.0 BETA                  ║" + Style.RESET_ALL)
     print(Fore.CYAN + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
     print()
     print(Fore.GREEN + "1. New Game" + Style.RESET_ALL)
@@ -2062,7 +2941,9 @@ if __name__ == "__main__":
         game.current_rod = RODS[-1]
         game.current_bait = BAITS[-1]
         game.debug_mode = True
-        print(Fore.LIGHTMAGENTA_EX + "All rods, baits, and locations unlocked!" + Style.RESET_ALL)
+        game.boss_inventory = list(BOSS_ITEMS.values())  # all boss items
+        print(Fore.LIGHTMAGENTA_EX + "All rods, baits, locations and bosses unlocked!" + Style.RESET_ALL)
+        print(Fore.LIGHTMAGENTA_EX + "Press [B] in-game to spawn bosses directly!" + Style.RESET_ALL)
         time.sleep(1)
         game.start_game()
 
