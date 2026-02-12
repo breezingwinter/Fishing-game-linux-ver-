@@ -67,7 +67,7 @@ def show_intro():
     ║                                                              ║
     ╚══════════════════════════════════════════════════════════════╝
     """
-
+    #intro wow
     lines = intro.split("\n")
 
     # Reserve screen space (avoid scrolling)
