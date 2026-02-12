@@ -10,6 +10,64 @@ import subprocess
 from colorama import Fore, Style, init
 from datetime import datetime
 
+# Music system - cross-platform support
+current_music = None
+music_enabled = True
+
+def play_music(track_name):
+    """Play background music with error handling"""
+    global current_music, music_enabled
+    
+    if not music_enabled:
+        return
+    
+    # Stop current music if playing
+    stop_music()
+    
+    music_path = f"music/{track_name}.wav"
+    
+    if not os.path.exists(music_path):
+        if current_music is None:  # Only print once per session
+            print(Fore.YELLOW + f"♪ Music not found, audio disabled" + Style.RESET_ALL)
+            music_enabled = False
+        return
+    
+    try:
+        if platform.system() == 'Windows':
+            # Use os.startfile for Windows
+            os.startfile(music_path)
+            current_music = track_name
+        elif platform.system() == 'Darwin':  # macOS
+            subprocess.Popen(['afplay', music_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            current_music = track_name
+        else:  # Linux
+            subprocess.Popen(['aplay', music_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            current_music = track_name
+    except Exception as e:
+        if current_music is None:
+            print(Fore.YELLOW + f"♪ Music playback error, audio disabled" + Style.RESET_ALL)
+            music_enabled = False
+
+def stop_music():
+    """Stop currently playing music"""
+    global current_music
+    
+    if current_music is None:
+        return
+    
+    try:
+        if platform.system() == 'Windows':
+            # Windows doesn't provide easy control, so we skip stopping
+            pass
+        elif platform.system() == 'Darwin':  # macOS
+            subprocess.run(['killall', 'afplay'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else:  # Linux
+            subprocess.run(['killall', 'aplay'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except:
+        pass
+    
+    current_music = None
+
 #kant
 #SIMGA!
 RAINBOW = [
@@ -3564,6 +3622,19 @@ class Game:
         """Main fishing action"""
         self.clear_screen()
         
+        # Play location music
+        location_music_map = {
+            "Hub Island - Calm Lake": "hub_island",
+            "Hub Island - Swift River": "hub_island",
+            "Ocean": "ocean",
+            "Deep Sea": "deep_sea",
+            "River": "river",
+            "Space": "space"
+        }
+        
+        track = location_music_map.get(self.current_location.name, "hub_island")
+        play_music(track)
+        
         # Durability check
         if self.rod_durability <= 0:
             print(Fore.RED + "⚠️ Your rod is broken! Repair it at the shop first!" + Style.RESET_ALL)
@@ -4799,6 +4870,9 @@ class Game:
         """Main game loop using hub island"""
         hub_map = LOCATIONS[0].map  # Hub island map
         
+        # Play hub island music
+        play_music("hub_island")
+        
         while True:
             # Render hub island
             self.clear_screen()
@@ -4984,6 +5058,17 @@ class Game:
     def start_boss_fight(self, boss):
         """Undertale-style boss fight system"""
         self.clear_screen()
+        
+        # Play boss-specific music
+        boss_music_map = {
+            "Loch Ness Monster": "boss_nessie",
+            "The River Guardian": "boss_river_guardian",
+            "The Crimson Tide": "boss_pirates",
+            "The Kraken": "boss_kraken"
+        }
+        
+        track = boss_music_map.get(boss.name, "boss_generic")
+        play_music(track)
         
         # Reset boss HP for new fight
         boss.hp = boss.max_hp
@@ -5737,6 +5822,10 @@ class Game:
 # ===== MAIN =====
 if __name__ == "__main__":
     show_intro()
+    
+    # Play menu music
+    play_music("menu")
+    
     print(Fore.CYAN + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
     print(Fore.CYAN + "║       🎣 FISHING GAME 🎣              ║" + Style.RESET_ALL)
     print(Fore.CYAN + "║       BOSS BATTLES UPDATE             ║" + Style.RESET_ALL)
