@@ -143,6 +143,8 @@ DID_YOU_KNOW_FACTS = [
     "Boss fights can be triggered using special items found while fishing!",
     "Sparing bosses gives you positive karma - killing them gives negative karma!",
     "Each location has a unique boss waiting to be discovered!",
+    "A fish is a creature that lives in water!",
+    
 ]
 
 def get_random_fact():
@@ -905,7 +907,6 @@ class Location:
 
 
 lake_fish = [
-    Fish("fish", 0,1, 0,5, "mythical", 0.0000000000000001, 20, "just a strange fish", 5), #hidden fish for testing
     Fish("Trout", 0.5, 2.5, "Common", 10, 15, "Trout are freshwater fish commonly found in rivers and lakes.", 20),
     Fish("Bass", 4.5, 10.0, "Uncommon", 5, 25, "Bass are popular game fish found in many lakes and rivers.", 50),
     Fish("Pike", 5.0, 15.0, "Rare", 2, 50, "Pike are carnivorous fish found in lakes and rivers.", 100),
@@ -972,6 +973,7 @@ ocean_fish = [
     Fish("Glow Reef Angelfish", 3, 6, "Rare", 1.4, 20, "An elegant neon fish that drifts like it's in zero-gravity water.", 90),
     #TODO: make the german fish say a random number of fishes in german
     Fish("Ein kleiner Fisch", 0.1, 0.5, "Common", 0.1, 10, 'A tiny fish that seems to be singing in German. its saying "Fünf kleine Fische, die schwammen im Meer, blub blub blub blub"', 10),
+    Fish("Ein großer Hai", 10, 50, "Rare", 0.5, 50, 'A large shark that seems to be singing in German. its saying "Ein großer Hai, der schwamm im Meer, blub blub blub blub"', 100),
     
 
 ]
@@ -3337,6 +3339,12 @@ if __name__ == "__main__":
     print(Fore.CYAN + "║       BOSS BATTLES UPDATE             ║" + Style.RESET_ALL)
     print(Fore.CYAN + "║         V.0.6.0 BETA                  ║" + Style.RESET_ALL)
     print(Fore.CYAN + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
+    print()
+    print(
+        Fore.YELLOW + "ℹ️   Did You Know?" + Style.RESET_ALL,
+        random.choice(DID_YOU_KNOW_FACTS)
+    )
+    time.sleep(2)
     print()
     print(Fore.GREEN + "1. New Game" + Style.RESET_ALL)
     print(Fore.GREEN + "2. Load Game" + Style.RESET_ALL)
