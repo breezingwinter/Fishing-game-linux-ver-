@@ -410,24 +410,19 @@ def loch_ness_water_blast():
 
 # ===== BOSS DEFINITIONS =====
 LOCH_NESS_ASCII = """
-                                  ___
-                              .-'   `'.
-                             /         \\
-                             |         ;
-                             |         |           ___.--,
-                    _.._     |0) ~ (0) |    _.---'`__.-( (_.
-             __.--'`_.. '.__.\    '--. \_.-' ,.--'`     `""`
-            ( ,.--'`   ',__ /./;   ;, '.__.'`    __
-            _`) )  .---.__.' / |   |\\   \\__..--""  \"\"\"--.,_
-           `---' .'.''-._.-'`_./  /\\ '.  \\ _.-~~~````~~~-._`-.__.'
-                 | |  .' _.-' |  |  \\  \\  '.               `~---`
-                  \\ \\/ .'     \\  \\   '. '-._)
-                   \\/ /        \\  \\    `=.__`~-.
-                   / /\\         `) )    / / `"".`\\
-             , _.-'.'\\ \\        / /    ( (     / /
-              `--~`   ) )    .-'.'      '.'.  | (
-                     (/`    ( (`          ) )  '-;
-                      `      '-;         (-'
+                                _..--+~/@-@--.
+                        _-=~      (  .    )
+                        _-~     _.--=.\ \''''
+                    _~      _-       \ \_\
+                    =      _=          '--'
+                    '      =                             .
+                :      :                              '=_. ___
+                |      ;                                  '~--.~.
+                ;      ;                                       } |
+                =       \             __..-...__           ___/__/__
+                :        =_     _.-~~          ~~--.__
+                __  \         ~-+-~                   ___~=_______
+                    ~@#~~ == ...______ __ ___ _--~~--_
 """
 
 LOCH_NESS_MONSTER = Boss(
@@ -2876,6 +2871,16 @@ class Game:
                 
                 # Restore HP and return
                 self.current_hp = self.max_hp
+                #take 15% of money as penalty for losing
+                penalty = int(self.money * 0.15)
+                self.money -= penalty
+                print(Fore.YELLOW + f"You lost ${penalty}!" + Style.RESET_ALL)
+                #take some fish too
+                if self.inventory:
+                    lost_fish = random.sample(self.inventory, min(3, len(self.inventory)))
+                    for fish in lost_fish:
+                        self.inventory.remove(fish)
+                    print(Fore.YELLOW + f"You lost {len(lost_fish)} fish from your inventory!" + Style.RESET_ALL)
                 
                 input(Fore.LIGHTBLACK_EX + "\nPress Enter to continue..." + Style.RESET_ALL)
                 return
