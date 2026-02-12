@@ -10,7 +10,7 @@ import subprocess
 from colorama import Fore, Style, init
 from datetime import datetime
 
-#SIMGA!
+#SIMGA! 
 RAINBOW = [
     Fore.RED,
     Fore.LIGHTRED_EX,
