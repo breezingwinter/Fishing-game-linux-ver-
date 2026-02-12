@@ -143,6 +143,9 @@ DID_YOU_KNOW_FACTS = [
     "Boss fights can be triggered using special items found while fishing!",
     "Sparing bosses gives you positive karma - killing them gives negative karma!",
     "Each location has a unique boss waiting to be discovered!",
+    "The River Guardian is said to be over 1000 years old!",
+    "Pike are ambush predators known as 'water wolves' in nature!",
+    "The River Guardian protects the sacred rapids from those who would harm them!",
     "A fish is a creature that lives in water!",
     
 ]
@@ -709,8 +712,257 @@ def loch_ness_combo_attack():
     return total_damage
 
 
+# ===== RIVER GUARDIAN ATTACK PATTERNS =====
+def river_rapids_dodge():
+    """Navigate through rushing rapids"""
+    print(Fore.CYAN + "\n🌊 THE RAPIDS SURGE FORWARD! 🌊\n" + Style.RESET_ALL)
+    
+    path_length = 60
+    safe_path = []
+    obstacles = []
+    
+    # Generate safe path
+    current_pos = random.randint(10, 20)
+    for _ in range(8):
+        safe_path.append(current_pos)
+        current_pos += random.randint(-3, 3)
+        current_pos = max(5, min(path_length - 5, current_pos))
+    
+    # Generate obstacles
+    for i in range(path_length):
+        if i not in safe_path:
+            obstacles.append(i)
+    
+    # Show the rapids
+    for frame in range(10):
+        display = [' '] * path_length
+        for obs in obstacles[:20]:  # Show some obstacles
+            if obs < path_length:
+                display[obs] = '≋' if frame % 2 == 0 else '~'
+        
+        for safe in safe_path[:frame//2 + 1]:
+            if safe < path_length:
+                display[safe] = '·'
+        
+        print("\r" + Fore.CYAN + "[" + ''.join(display) + "]" + Style.RESET_ALL, end='')
+        sys.stdout.flush()
+        time.sleep(0.1)
+    
+    print("\n")
+    print(Fore.YELLOW + "Follow the safe path! Enter position (0-59):" + Style.RESET_ALL)
+    
+    try:
+        choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
+        if choice in safe_path:
+            print(Fore.GREEN + "✓ Expertly navigated!" + Style.RESET_ALL)
+            return 0
+        else:
+            print(Fore.RED + "💥 Slammed into rocks! (-18 HP)" + Style.RESET_ALL)
+            return 18
+    except:
+        print(Fore.RED + "Invalid! Swept away! (-18 HP)" + Style.RESET_ALL)
+        return 18
+
+
+def river_bite_sequence():
+    """Quick reaction test - dodge the pike's bites"""
+    print(Fore.RED + "\n🦈 THE GUARDIAN ATTACKS WITH RAZOR TEETH! 🦈\n" + Style.RESET_ALL)
+    
+    total_damage = 0
+    num_bites = 4
+    
+    print(Fore.YELLOW + "Press the correct key quickly to dodge!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    for i in range(num_bites):
+        direction = random.choice(['W', 'A', 'S', 'D'])
+        direction_name = {'W': '⬆️  UP', 'A': '⬅️  LEFT', 'S': '⬇️  DOWN', 'D': '➡️  RIGHT'}
+        
+        print()
+        print(Fore.CYAN + f"Bite #{i+1} - Dodge {direction_name[direction]}!" + Style.RESET_ALL)
+        print(Fore.WHITE + f"Press '{direction}':" + Style.RESET_ALL)
+        
+        # Charging animation
+        for _ in range(3):
+            sys.stdout.write("\r" + Fore.RED + " >>" * (i+1) + " 🦈 " + Style.RESET_ALL)
+            sys.stdout.flush()
+            time.sleep(0.15)
+        
+        try:
+            user_input = input(Fore.GREEN + "\n> " + Style.RESET_ALL).upper()
+            if user_input == direction:
+                print(Fore.GREEN + "✓ Dodged!" + Style.RESET_ALL)
+            else:
+                print(Fore.RED + "💥 Bitten! (-7 HP)" + Style.RESET_ALL)
+                total_damage += 7
+        except:
+            total_damage += 7
+        
+        time.sleep(0.3)
+    
+    if total_damage == 0:
+        print(Fore.LIGHTGREEN_EX + "\n★ PERFECT! All bites dodged! ★" + Style.RESET_ALL)
+    
+    return total_damage
+
+
+def river_current_spin():
+    """Spinning current trap"""
+    print(Fore.BLUE + "\n🌀 THE GUARDIAN CREATES A WHIRLPOOL! 🌀\n" + Style.RESET_ALL)
+    
+    # Show spinning animation
+    spin_frames = ['|', '/', '-', '\\']
+    for _ in range(12):
+        for frame in spin_frames:
+            sys.stdout.write("\r" + Fore.CYAN + f"    {frame} SPINNING {frame}    " + Style.RESET_ALL)
+            sys.stdout.flush()
+            time.sleep(0.08)
+    
+    print("\n")
+    print(Fore.YELLOW + "The whirlpool stops! Which direction?" + Style.RESET_ALL)
+    print(Fore.WHITE + "1. North  2. East  3. South  4. West" + Style.RESET_ALL)
+    
+    safe_dir = random.randint(1, 4)
+    hints = {
+        1: "💭 You feel a northern breeze...",
+        2: "💭 The eastern current feels calmer...",
+        3: "💭 Something pulls you south...",
+        4: "💭 The western waters seem safer..."
+    }
+    
+    print(Fore.LIGHTBLACK_EX + hints[safe_dir] + Style.RESET_ALL)
+    
+    try:
+        choice = int(input(Fore.GREEN + "\n> " + Style.RESET_ALL))
+        if choice == safe_dir:
+            print(Fore.GREEN + "✓ Escaped the whirlpool!" + Style.RESET_ALL)
+            return 0
+        else:
+            print(Fore.RED + "💥 Pulled under! (-16 HP)" + Style.RESET_ALL)
+            return 16
+    except:
+        print(Fore.RED + "Invalid! Dragged down! (-16 HP)" + Style.RESET_ALL)
+        return 16
+
+
+def river_tail_strike():
+    """Timing-based dodge"""
+    print(Fore.GREEN + "\n⚡ MASSIVE TAIL INCOMING! ⚡\n" + Style.RESET_ALL)
+    
+    print(Fore.YELLOW + "Get ready to dodge!" + Style.RESET_ALL)
+    time.sleep(0.5)
+    
+    # Build-up
+    for i in range(5):
+        sys.stdout.write("\r" + Fore.YELLOW + "." * (i+1) + "   ")
+        sys.stdout.flush()
+        time.sleep(0.4)
+    
+    print()
+    
+    # Random window for dodge
+    dodge_window = random.uniform(0.5, 2.0)
+    
+    print(Fore.RED + "\nPress ENTER when you see 'NOW!':" + Style.RESET_ALL)
+    time.sleep(dodge_window)
+    
+    start_time = time.time()
+    print(Fore.LIGHTGREEN_EX + ">>> NOW! <<<" + Style.RESET_ALL)
+    
+    try:
+        input()
+        reaction_time = time.time() - start_time
+        
+        if reaction_time < 0.5:
+            print(Fore.GREEN + f"✓ Lightning reflexes! ({reaction_time:.2f}s)" + Style.RESET_ALL)
+            return 0
+        elif reaction_time < 1.0:
+            print(Fore.YELLOW + f"Grazed! ({reaction_time:.2f}s) (-10 HP)" + Style.RESET_ALL)
+            return 10
+        else:
+            print(Fore.RED + f"Too slow! ({reaction_time:.2f}s) (-20 HP)" + Style.RESET_ALL)
+            return 20
+    except:
+        print(Fore.RED + "Missed! (-20 HP)" + Style.RESET_ALL)
+        return 20
+
+
+def river_wrath_combo():
+    """Ultimate attack - only used at low HP"""
+    print(Fore.RED + "\n⚡💢 RIVER'S WRATH UNLEASHED! 💢⚡\n" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    total_damage = 0
+    
+    # Phase 1: Quick choice
+    print(Fore.CYAN + "Phase 1: THE CURRENT SHIFTS!" + Style.RESET_ALL)
+    print(Fore.WHITE + "Swim LEFT or RIGHT? (L/R)" + Style.RESET_ALL)
+    
+    correct = random.choice(['L', 'R'])
+    try:
+        choice = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+        if choice != correct:
+            print(Fore.RED + "💦 Wrong way! (-12 HP)" + Style.RESET_ALL)
+            total_damage += 12
+        else:
+            print(Fore.GREEN + "✓ Safe!" + Style.RESET_ALL)
+    except:
+        total_damage += 12
+    
+    time.sleep(0.5)
+    
+    # Phase 2: Memorize positions
+    print()
+    print(Fore.MAGENTA + "Phase 2: RAPIDS MAZE!" + Style.RESET_ALL)
+    
+    safe_zones = random.sample(range(5), 2)
+    display = ['🪨' if i not in safe_zones else '✨' for i in range(5)]
+    
+    print(Fore.GREEN + "MEMORIZE: " + " | ".join([f"[{i}]: {display[i]}" for i in range(5)]) + Style.RESET_ALL)
+    time.sleep(2.5)
+    
+    print(Fore.LIGHTBLACK_EX + "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓" + Style.RESET_ALL)
+    print(Fore.CYAN + "Pick a safe zone (0-4):" + Style.RESET_ALL)
+    
+    try:
+        choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
+        if choice in safe_zones:
+            print(Fore.GREEN + "✓ Safe!" + Style.RESET_ALL)
+        else:
+            print(Fore.RED + "💥 Hit rocks! (-15 HP)" + Style.RESET_ALL)
+            total_damage += 15
+    except:
+        total_damage += 15
+    
+    time.sleep(0.5)
+    
+    # Phase 3: Final strike
+    print()
+    print(Fore.RED + "Phase 3: FINAL GUARDIAN STRIKE!" + Style.RESET_ALL)
+    print(Fore.YELLOW + "Type 'DODGE' quickly!" + Style.RESET_ALL)
+    
+    start = time.time()
+    try:
+        response = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+        elapsed = time.time() - start
+        
+        if response == "DODGE" and elapsed < 2:
+            print(Fore.GREEN + "✓ Dodged!" + Style.RESET_ALL)
+        else:
+            print(Fore.RED + "💥 STRUCK! (-18 HP)" + Style.RESET_ALL)
+            total_damage += 18
+    except:
+        total_damage += 18
+    
+    print()
+    if total_damage == 0:
+        print(Fore.LIGHTGREEN_EX + "★★★ FLAWLESS VICTORY! ★★★" + Style.RESET_ALL)
+    
+    return total_damage
+
+
 # ===== BOSS DEFINITIONS =====
-LOCH_NESS_ASCII = """
+LOCH_NESS_ASCII = r"""
                                 _..--+~/@-@--.
                         _-=~      (  .    )
                         _-~     _.--=.\ \''''
@@ -756,6 +1008,88 @@ attacks=[
     spare_threshold=40
 )
 
+# River Guardian Boss
+RIVER_GUARDIAN_ASCII = """
+                                  ~≈~
+                           ~≈~   /   \\   ~≈~
+                    ~≈~         /  O  \\         ~≈~
+              ~≈~            __/       \\__            ~≈~
+        ~≈~               _/   \\_____/   \\_               ~≈~
+                       __/  /\\ |     | /\\  \\__
+                     _/    /  \\|     |/  \\    \\_
+                   _/     /    |  ^  |    \\     \\_
+         ~≈~     _/      /     | / \\ |     \\      \\_     ~≈~
+               /        /      |/   \\|      \\        \\
+              /        /       '     '       \\        \\
+        ~≈~ /        /    THE RIVER GUARDIAN  \\        \\  ~≈~
+           /________/___________________________\\________\\
+         ~≈~   ~≈~   Ancient Pike of the Rapids   ~≈~   ~≈~
+"""
+
+RIVER_GUARDIAN = Boss(
+    name="The River Guardian",
+    hp=800,
+    defense=15,
+    attacks=[
+        BossAttack("Rapids Rush", river_rapids_dodge, (0, 18), "Navigate treacherous rapids!"),
+        BossAttack("Torrential Bite", river_bite_sequence, (0, 28), "Dodge rapid bite attacks!"),
+        BossAttack("Whirlpool Spin", river_current_spin, (0, 16), "Escape the spinning vortex!"),
+        BossAttack("Tail Strike", river_tail_strike, (0, 20), "Perfect timing required!"),
+        BossAttack("RIVER'S WRATH", river_wrath_combo, (0, 45), "The Guardian's ultimate fury!")
+    ],
+    ascii_art=RIVER_GUARDIAN_ASCII,
+    dialogue={
+        "intro": [
+            "*The river begins to churn and boil...*",
+            "*A massive shadow rises from the depths!*",
+            "*The River Guardian emerges, ancient and territorial!*",
+            "*'YOU DARE DISTURB THESE SACRED WATERS?!'*"
+        ],
+        "default": [
+            "*The Guardian circles in the current*",
+            "*Ancient eyes watch your every move*",
+            "*The water ripples with primal power*"
+        ],
+        "hit": [
+            "*It thrashes violently!*",
+            "*The Guardian roars!*",
+            "*Rapids surge in all directions!*"
+        ],
+        "low_hp": [
+            "*The Guardian's movements slow...*",
+            "*'Perhaps... you are worthy...'*",
+            "*The water calms around it*"
+        ],
+        "merciful": [
+            "*You show respect for the ancient waters*",
+            "*The Guardian acknowledges your understanding*",
+            "*Its rage begins to subside*"
+        ],
+        "spare_ready": [
+            "*The River Guardian can be SPARED*",
+            "*It awaits your decision with ancient wisdom*"
+        ],
+        "spared": [
+            "*You extend your hand in peace...*",
+            "*The River Guardian pauses, considering...*",
+            "*'You have proven yourself, young fisher.'*",
+            "*'These rapids are under my protection.'*",
+            "*'But I see now... you understand their value.'*",
+            "*The Guardian bows its massive head!*",
+            "*It grants you the blessing of the river!*",
+            "*The waters themselves acknowledge you!*"
+        ],
+        "killed": [
+            "*The Guardian lets out a final, mournful cry...*",
+            "*'The river... will remember this...'*",
+            "*Its ancient form sinks into the depths...*",
+            "*The waters grow still... too still...*",
+            "*You feel a profound loss*"
+        ]
+    },
+    spare_threshold=40
+)
+
 # Boss item that triggers the fight
 class BossItem:
     def __init__(self, name, boss, description, location):
@@ -770,6 +1104,12 @@ BOSS_ITEMS = {
         LOCH_NESS_MONSTER,
         "A shimmering scale from an ancient creature. Using it might summon something...",
         "Hub Island - Calm Lake"
+    ),
+    "River Stone": BossItem(
+        "River Stone",
+        RIVER_GUARDIAN,
+        "A smooth stone carved with ancient symbols. The river's power flows within it...",
+        "Hub Island - Swift River"
     ),
     # Add more boss items for other locations here
 }
@@ -3502,13 +3842,16 @@ class Game:
         print(Fore.MAGENTA + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
         print()
         print(Fore.CYAN + "1. Loch Ness Monster (Lake)" + Style.RESET_ALL)
-        print(Fore.CYAN + "2. [MORE BOSSES COMING SOON]" + Style.RESET_ALL)
+        print(Fore.CYAN + "2. River Guardian (River)" + Style.RESET_ALL)
+        print(Fore.CYAN + "3. [MORE BOSSES COMING SOON]" + Style.RESET_ALL)
         print(Fore.WHITE + "0. Back" + Style.RESET_ALL)
         
         choice = input(Fore.GREEN + "\nSpawn which boss? " + Style.RESET_ALL)
         
         if choice == '1':
             self.start_boss_fight(LOCH_NESS_MONSTER)
+        elif choice == '2':
+            self.start_boss_fight(RIVER_GUARDIAN)
 
 
 # ===== MAIN =====
