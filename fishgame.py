@@ -2095,8 +2095,8 @@ class Game:
             'trophy_room': [fish.to_dict() for fish in self.trophy_room],
             'current_location': self.current_location.name,
             'current_weather': self.current_weather,
-            'active_quests': [{'name': q.name, 'description': q.description} for q in self.active_quests],
-            'completed_quests': [{'name': q.name, 'description': q.description} for q in self.completed_quests],
+            'active_quests': [{'title': q.title, 'description': q.description} for q in self.active_quests],
+            'completed_quests': [{'title': q.title, 'description': q.description} for q in self.completed_quests],
             'max_hp': self.max_hp,
             'current_hp': self.current_hp,
         }
