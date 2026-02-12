@@ -67,7 +67,7 @@ def show_intro():
     ║                                                              ║
     ╚══════════════════════════════════════════════════════════════╝
     """
-#test
+
     lines = intro.split("\n")
 
     # Reserve screen space (avoid scrolling)
@@ -1513,13 +1513,13 @@ def undertale_attack_minigame(strength_stat, difficulty_name="Normal"):
 
 # ===== LOCATION MAP CLASS =====
 class LocationMap:
-    def __init__(self, name, layout, description=""):
+    def __init__(self, name, layout, description="", start_x=None, start_y=None):
         self.name = name
         self.layout = layout  # 2D list of characters
         self.description = description
         self.player_x = 1
         self.player_y = 1
-        self.message = "Use WASD to move around."
+        self.message = "Use WASD to move around. Stand in water and press [E] to fish!"
         
         # Find initial player position (spawn point marked with 'P')
         for y, row in enumerate(layout):
@@ -1528,6 +1528,11 @@ class LocationMap:
                     self.player_x = x
                     self.player_y = y
                     self.layout[y][x] = '.'  # Replace P with ground
+        
+        # Override with custom start position if provided
+        if start_x is not None and start_y is not None:
+            self.player_x = start_x
+            self.player_y = start_y
     
     def move_player(self, dx, dy):
         new_x = self.player_x + dx
@@ -1547,9 +1552,9 @@ class LocationMap:
                 self.message = "Can't walk there!"
     
     def is_fishing_spot(self, x, y):
-        """Check if location is a fishing spot"""
+        """Check if location is a fishing spot - any water tile"""
         tile = self.layout[y][x]
-        return tile in ['⊙', '◉']
+        return tile in ['≈', '≋', '~', 'V', 'A', 'S', '⊙', '◉']
     
     def is_golden_spot(self, x, y):
         """Check if it's a golden fishing spot"""
@@ -1593,10 +1598,8 @@ class LocationMap:
         """Render a single tile with appropriate coloring"""
         if is_player:
             return Fore.YELLOW + '☻' + Style.RESET_ALL
-        elif is_golden:
+        elif is_golden or tile == '◉':
             return Fore.LIGHTYELLOW_EX + '◉' + Style.RESET_ALL
-        elif is_spot or tile == '⊙':
-            return Fore.CYAN + '⊙' + Style.RESET_ALL
         elif tile == '≈':  # Lake water
             return Fore.BLUE + '≈' + Style.RESET_ALL
         elif tile == '≋':  # River water
@@ -1609,6 +1612,8 @@ class LocationMap:
             return Fore.CYAN + '≈' + Style.RESET_ALL
         elif tile == 'S':  # Space
             return Fore.MAGENTA + '·' + Style.RESET_ALL
+        elif tile == '⊙':  # Old fishing spot marker (treat as regular water)
+            return Fore.CYAN + '≈' + Style.RESET_ALL
         elif tile == '█':  # Wall
             return Fore.WHITE + '█' + Style.RESET_ALL
         elif tile == '🌳':  # Tree
@@ -1744,8 +1749,8 @@ ARCTIC_LAYOUT = [
 ]
 
 # Add maps to locations
-LOCATIONS[0].map = LocationMap("Hub Island - Calm Lake", HUB_ISLAND_LAYOUT, LOCATIONS[0].description)
-LOCATIONS[1].map = LocationMap("Hub Island - Swift River", HUB_ISLAND_LAYOUT, LOCATIONS[1].description)
+LOCATIONS[0].map = LocationMap("Hub Island - Calm Lake", HUB_ISLAND_LAYOUT, LOCATIONS[0].description, start_x=9, start_y=8)  # Lake spot
+LOCATIONS[1].map = LocationMap("Hub Island - Swift River", HUB_ISLAND_LAYOUT, LOCATIONS[1].description, start_x=11, start_y=3)  # River spot
 LOCATIONS[2].map = LocationMap("Ocean", OCEAN_LAYOUT, LOCATIONS[2].description)
 LOCATIONS[3].map = LocationMap("Deep Sea", DEEP_SEA_LAYOUT, LOCATIONS[3].description)
 LOCATIONS[4].map = LocationMap("Volcanic Lake", VOLCANIC_LAYOUT, LOCATIONS[4].description)
@@ -2863,6 +2868,9 @@ class Game:
     
     def explore_remote_location(self, location):
         """Explore a remote location (Ocean, Deep Sea, etc.)"""
+        # Set current location so fishing uses the correct fish pool
+        old_location = self.current_location
+        self.current_location = location
         location_map = location.map
         
         while True:
@@ -2906,12 +2914,24 @@ class Game:
             elif key == 'e':
                 if location_map.is_fishing_spot(location_map.player_x, location_map.player_y):
                     is_golden = location_map.is_golden_spot(location_map.player_x, location_map.player_y)
+                    
+                    # For Hub Island locations, check water type to ensure correct fish pool
+                    if location.name in ["Hub Island - Calm Lake", "Hub Island - Swift River"]:
+                        water_type = location_map.get_water_type(location_map.player_x, location_map.player_y)
+                        if water_type == 'river':
+                            self.current_location = LOCATIONS[1]  # Hub Island - Swift River
+                        elif water_type == 'lake':
+                            self.current_location = LOCATIONS[0]  # Hub Island - Calm Lake
+                    
                     self.fish(golden_spot=is_golden)
+                    
+                    # Restore location after fishing
+                    self.current_location = location
                 else:
-                    location_map.message = "You need to be at a fishing spot (⊙) to fish!"
+                    location_map.message = "You need to be in water to fish!"
             elif key == 'q':
-                # Return to hub island
-                self.current_location = LOCATIONS[0]
+                # Return to previous location
+                self.current_location = old_location
                 break
 
     def start_boss_fight(self, boss):
@@ -3089,8 +3109,8 @@ class Game:
                     
                     # Rewards for sparing
                     self.karma += 10
-                    reward_xp = 500
-                    reward_money = 1000
+                    reward_xp = 250
+                    reward_money = 500 #less money than killing to balance out the higher XP and karma gain
                     self.gain_xp(reward_xp)
                     self.money += reward_money
                     
@@ -3150,10 +3170,11 @@ class Game:
                     time.sleep(1)
                 print(Fore.RED + "=" * 60 + Style.RESET_ALL)
                 
+                # being a good person doesnt always pay off, sometimes you gotta do what you gotta do
                 # Negative karma
                 self.karma -= 15
-                reward_xp = 300
-                reward_money = 500
+                reward_xp =  500
+                reward_money = 1000
                 self.gain_xp(reward_xp)
                 self.money += reward_money
                 
