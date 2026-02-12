@@ -46,6 +46,7 @@ A feature-rich terminal-based fishing RPG with beautiful Unicode graphics, explo
 
 ### 🗺️ Hub Island Exploration
 - **Detailed Hub Map** - Navigate the expanded Hub Island with multiple locations
+Dev mode (option 99) unlocks everything instantly
 - **Interactive Buildings**:
   - 🏪 **Shop** - Buy rods, bait, and repair equipment
   - 🏛️ **Aquarium** - View your trophy collection
@@ -556,7 +557,6 @@ The game is packed with video game references!
 - Boss battles are currently limited to one boss (more coming!)
 - Some terminal emulators may have input lag during minigames
 - Emoji rendering varies by system
-- Dev mode (option 99) unlocks everything instantly
 
 ### Reporting Issues
 If you encounter issues:
@@ -780,3 +780,4 @@ Karma +10 (Total: 10)
 
 
 wow du leste gjennom
+
