@@ -151,6 +151,19 @@ DID_YOU_KNOW_FACTS = [
     "The River Guardian must be conquered before you can explore the Ocean!",
     "Boss progression is required - defeat them in order to advance!",
     "A fish is a creature that lives in water!",
+    "The Crimson Tide fights against corporate greed in the oceans!",
+    "Captain Redbeard and his crew are rebels, not villains!",
+    "Sparing the pirate ship unlocks Captain Redbeard as an ally at the docks!",
+    "AquaTech Industries has been exploiting the ocean's resources!",
+    "The rebellion grows stronger with every guardian you spare!",
+    "Pirates have their own code of honor on the high seas!",
+    "Sometimes the real monsters are the corporations, not the creatures!",
+    "The Kraken is the last of its kind - an ancient guardian of the deep!",
+    "Kraken legends appear in Norse, Greek, and many other mythologies!",
+    "The Kraken can only be encountered after dealing with the pirates!",
+    "Sparing the Kraken grants you the blessing of the ancient seas!",
+    "The Kraken's tentacles can reach over 100 feet in the legends!",
+    "Some say the Kraken is older than human civilization itself!",
     
 ]
 
@@ -965,6 +978,544 @@ def river_wrath_combo():
     return total_damage
 
 
+# ===== PIRATE SHIP ATTACK PATTERNS =====
+def pirate_cannon_barrage():
+    """Dodge incoming cannonballs"""
+    print(Fore.RED + "\n💣 CANNON BARRAGE INCOMING! 💣\n" + Style.RESET_ALL)
+    
+    total_damage = 0
+    num_shots = 5
+    
+    print(Fore.YELLOW + "Dodge the cannonballs! Watch for the indicators!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    for i in range(num_shots):
+        position = random.randint(1, 5)
+        
+        # Show cannon charging
+        print()
+        print(Fore.CYAN + f"Shot #{i+1}!" + Style.RESET_ALL)
+        time.sleep(0.3)
+        
+        # Show positions with one being the danger zone
+        display = ['[ ]' if j != position else '[💣]' for j in range(1, 6)]
+        print(Fore.WHITE + "Positions: " + ' '.join(display) + Style.RESET_ALL)
+        print(Fore.YELLOW + "Where do you move? (1-5):" + Style.RESET_ALL)
+        
+        try:
+            choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
+            if choice == position:
+                print(Fore.RED + "💥 DIRECT HIT! (-8 HP)" + Style.RESET_ALL)
+                total_damage += 8
+            else:
+                print(Fore.GREEN + "✓ Dodged!" + Style.RESET_ALL)
+        except:
+            total_damage += 8
+        
+        time.sleep(0.4)
+    
+    if total_damage == 0:
+        print(Fore.LIGHTGREEN_EX + "\n★ UNTOUCHABLE! Perfect evasion! ★" + Style.RESET_ALL)
+    
+    return total_damage
+
+
+def pirate_harpoon_strike():
+    """Quick reaction to dodge harpoon"""
+    print(Fore.CYAN + "\n🔱 HARPOON STRIKE! 🔱\n" + Style.RESET_ALL)
+    
+    print(Fore.YELLOW + "The pirates are aiming their harpoon..." + Style.RESET_ALL)
+    time.sleep(1)
+    
+    # Show aiming
+    aim_chars = ['·', ':', '•', '●']
+    for char in aim_chars * 2:
+        sys.stdout.write("\r" + Fore.RED + f"Targeting... {char}" + Style.RESET_ALL)
+        sys.stdout.flush()
+        time.sleep(0.2)
+    
+    print("\n")
+    print(Fore.RED + "Type 'DIVE' to dodge!" + Style.RESET_ALL)
+    
+    start = time.time()
+    try:
+        response = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+        elapsed = time.time() - start
+        
+        if response == "DIVE":
+            if elapsed < 1.5:
+                print(Fore.GREEN + f"✓ Ducked in time! ({elapsed:.2f}s)" + Style.RESET_ALL)
+                return 0
+            else:
+                print(Fore.YELLOW + f"Grazed! ({elapsed:.2f}s) (-12 HP)" + Style.RESET_ALL)
+                return 12
+        else:
+            print(Fore.RED + "Wrong input! Got harpooned! (-20 HP)" + Style.RESET_ALL)
+            return 20
+    except:
+        print(Fore.RED + "Too slow! (-20 HP)" + Style.RESET_ALL)
+        return 20
+
+
+def pirate_broadside_ram():
+    """Predict and avoid ship ramming"""
+    print(Fore.MAGENTA + "\n⚓ THE SHIP IS RAMMING! ⚓\n" + Style.RESET_ALL)
+    
+    print(Fore.YELLOW + "Watch the ship's movement!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    # Show ship approaching
+    directions = ['PORT (LEFT)', 'STARBOARD (RIGHT)', 'STERN (BACK)']
+    correct = random.choice(directions)
+    
+    # Give hint based on direction
+    if 'LEFT' in correct:
+        print(Fore.LIGHTBLACK_EX + "💭 The ship is turning starboard..." + Style.RESET_ALL)
+        print(Fore.LIGHTBLACK_EX + "💭 It's coming from the right..." + Style.RESET_ALL)
+    elif 'RIGHT' in correct:
+        print(Fore.LIGHTBLACK_EX + "💭 The ship is turning port..." + Style.RESET_ALL)
+        print(Fore.LIGHTBLACK_EX + "💭 It's coming from the left..." + Style.RESET_ALL)
+    else:
+        print(Fore.LIGHTBLACK_EX + "💭 The ship is backing up..." + Style.RESET_ALL)
+        print(Fore.LIGHTBLACK_EX + "💭 Watch your stern!" + Style.RESET_ALL)
+    
+    time.sleep(1.5)
+    
+    # Show charging animation
+    for i in range(5):
+        sys.stdout.write("\r" + Fore.RED + "INCOMING! " + ">" * (i+1) + Style.RESET_ALL)
+        sys.stdout.flush()
+        time.sleep(0.25)
+    
+    print("\n")
+    print(Fore.CYAN + "Where do you dodge?" + Style.RESET_ALL)
+    print(Fore.WHITE + "1. PORT (LEFT)  2. STARBOARD (RIGHT)  3. STERN (BACK)" + Style.RESET_ALL)
+    
+    try:
+        choice = input(Fore.GREEN + "> " + Style.RESET_ALL)
+        choice_map = {'1': 'PORT (LEFT)', '2': 'STARBOARD (RIGHT)', '3': 'STERN (BACK)'}
+        player_choice = choice_map.get(choice, 'INVALID')
+        
+        if player_choice == correct:
+            print(Fore.GREEN + "✓ Perfect dodge!" + Style.RESET_ALL)
+            return 0
+        else:
+            print(Fore.RED + f"💥 RAMMED! Should have dodged {correct}! (-25 HP)" + Style.RESET_ALL)
+            return 25
+    except:
+        print(Fore.RED + "Invalid! Got crushed! (-25 HP)" + Style.RESET_ALL)
+        return 25
+
+
+def pirate_net_toss():
+    """Escape from a net by matching sequence"""
+    print(Fore.BLUE + "\n🕸️  NET TOSSED! 🕸️\n" + Style.RESET_ALL)
+    
+    print(Fore.YELLOW + "You're caught in a fishing net!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    # Generate escape sequence
+    sequence_length = 4
+    sequence = ''.join(random.choices(['W', 'A', 'S', 'D'], k=sequence_length))
+    
+    print(Fore.CYAN + "Cut the ropes in sequence!" + Style.RESET_ALL)
+    print(Fore.WHITE + f"Input: {' → '.join(sequence)}" + Style.RESET_ALL)
+    time.sleep(2)
+    
+    # Hide sequence
+    print(Fore.LIGHTBLACK_EX + "▓" * 20 + Style.RESET_ALL)
+    
+    print(Fore.GREEN + "Type the sequence now:" + Style.RESET_ALL)
+    
+    try:
+        player_input = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+        
+        if player_input == sequence:
+            print(Fore.GREEN + "✓ Escaped the net!" + Style.RESET_ALL)
+            return 0
+        else:
+            correct_count = sum(1 for i, char in enumerate(player_input) if i < len(sequence) and char == sequence[i])
+            damage = 15 - (correct_count * 3)
+            print(Fore.YELLOW + f"Partially cut! Got {correct_count}/{sequence_length} correct (-{damage} HP)" + Style.RESET_ALL)
+            return damage
+    except:
+        print(Fore.RED + "💥 Tangled in the net! (-15 HP)" + Style.RESET_ALL)
+        return 15
+
+
+def pirate_ultimate_assault():
+    """Multi-phase pirate attack"""
+    print(Fore.RED + "\n🏴‍☠️💥 ALL HANDS ON DECK! 💥🏴‍☠️\n" + Style.RESET_ALL)
+    print(Fore.MAGENTA + "CAPTAIN REDBEARD: GIVE 'EM EVERYTHING WE'VE GOT!" + Style.RESET_ALL)
+    time.sleep(1.5)
+    
+    total_damage = 0
+    
+    # Phase 1: Quick dodge
+    print()
+    print(Fore.CYAN + "Phase 1: GRAPPLING HOOKS!" + Style.RESET_ALL)
+    print(Fore.WHITE + "Duck LEFT or RIGHT? (L/R)" + Style.RESET_ALL)
+    
+    correct = random.choice(['L', 'R'])
+    try:
+        choice = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+        if choice != correct:
+            print(Fore.RED + "🪝 Hooked! (-10 HP)" + Style.RESET_ALL)
+            total_damage += 10
+        else:
+            print(Fore.GREEN + "✓ Dodged!" + Style.RESET_ALL)
+    except:
+        total_damage += 10
+    
+    time.sleep(0.7)
+    
+    # Phase 2: Cannon timing
+    print()
+    print(Fore.MAGENTA + "Phase 2: CANNON FIRE!" + Style.RESET_ALL)
+    print(Fore.YELLOW + "Press SPACE when you see the shot!" + Style.RESET_ALL)
+    
+    delay = random.uniform(1, 2.5)
+    time.sleep(delay)
+    
+    start = time.time()
+    print(Fore.RED + "💥 BOOM! 💥" + Style.RESET_ALL)
+    
+    try:
+        input()
+        reaction = time.time() - start
+        if reaction < 0.8:
+            print(Fore.GREEN + f"✓ Dodged! ({reaction:.2f}s)" + Style.RESET_ALL)
+        else:
+            print(Fore.RED + f"💣 Hit! ({reaction:.2f}s) (-15 HP)" + Style.RESET_ALL)
+            total_damage += 15
+    except:
+        total_damage += 15
+    
+    time.sleep(0.7)
+    
+    # Phase 3: Final sequence
+    print()
+    print(Fore.RED + "Phase 3: BOARDING PARTY!" + Style.RESET_ALL)
+    print(Fore.CYAN + "Fight them off! Type 'FIGHT':" + Style.RESET_ALL)
+    
+    try:
+        response = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+        if response == "FIGHT":
+            print(Fore.GREEN + "✓ Repelled!" + Style.RESET_ALL)
+        else:
+            print(Fore.RED + "⚔️  Overwhelmed! (-12 HP)" + Style.RESET_ALL)
+            total_damage += 12
+    except:
+        total_damage += 12
+    
+    print()
+    if total_damage == 0:
+        print(Fore.LIGHTGREEN_EX + "★★★ LEGENDARY DEFENSE! ★★★" + Style.RESET_ALL)
+    
+    return total_damage
+
+
+# ===== KRAKEN ATTACK PATTERNS =====
+def kraken_tentacle_slam():
+    """Dodge multiple tentacle slams"""
+    print(Fore.MAGENTA + "\n🐙 TENTACLES RISE FROM THE DEPTHS! 🐙\n" + Style.RESET_ALL)
+    
+    total_damage = 0
+    num_slams = 6
+    
+    print(Fore.YELLOW + "Watch the tentacles and dodge!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    for i in range(num_slams):
+        positions = [1, 2, 3, 4, 5]
+        danger_zones = random.sample(positions, 2)  # 2 tentacles attack
+        
+        print()
+        print(Fore.CYAN + f"Slam #{i+1}!" + Style.RESET_ALL)
+        
+        # Show tentacles rising
+        display = []
+        for pos in positions:
+            if pos in danger_zones:
+                display.append('[🐙]')
+            else:
+                display.append('[ ]')
+        
+        print(Fore.WHITE + "Positions: " + ' '.join(display) + Style.RESET_ALL)
+        print(Fore.YELLOW + "Safe position? (1-5):" + Style.RESET_ALL)
+        
+        try:
+            choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
+            if choice in danger_zones:
+                print(Fore.RED + "💥 CRUSHED! (-10 HP)" + Style.RESET_ALL)
+                total_damage += 10
+            else:
+                print(Fore.GREEN + "✓ Safe!" + Style.RESET_ALL)
+        except:
+            total_damage += 10
+        
+        time.sleep(0.3)
+    
+    if total_damage == 0:
+        print(Fore.LIGHTGREEN_EX + "\n★ PERFECT! Dodged all tentacles! ★" + Style.RESET_ALL)
+    
+    return total_damage
+
+
+def kraken_ink_cloud():
+    """Navigate through ink cloud - memory test"""
+    print(Fore.LIGHTBLACK_EX + "\n💨 THE KRAKEN RELEASES INK! 💨\n" + Style.RESET_ALL)
+    
+    print(Fore.YELLOW + "Memorize the safe path before the ink clouds your vision!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    # Show safe path
+    path_length = 7
+    safe_path = random.sample(range(1, 10), path_length)
+    
+    print(Fore.GREEN + "SAFE PATH: " + Style.RESET_ALL, end='')
+    for step in safe_path:
+        print(Fore.CYAN + f"[{step}] ", end='')
+        sys.stdout.flush()
+        time.sleep(0.4)
+    
+    print("\n")
+    time.sleep(1.5)
+    
+    # Hide with ink
+    for _ in range(3):
+        print(Fore.LIGHTBLACK_EX + "█" * 40 + Style.RESET_ALL)
+    
+    print()
+    print(Fore.YELLOW + "Enter the path (numbers separated by spaces):" + Style.RESET_ALL)
+    
+    try:
+        user_input = input(Fore.GREEN + "> " + Style.RESET_ALL)
+        user_path = [int(x) for x in user_input.split()]
+        
+        if user_path == safe_path:
+            print(Fore.GREEN + "✓ Perfect memory! Navigated through!" + Style.RESET_ALL)
+            return 0
+        else:
+            correct_count = sum(1 for i, num in enumerate(user_path) if i < len(safe_path) and num == safe_path[i])
+            damage = 20 - (correct_count * 2)
+            print(Fore.YELLOW + f"Got {correct_count}/{path_length} correct (-{damage} HP)" + Style.RESET_ALL)
+            return damage
+    except:
+        print(Fore.RED + "💥 Lost in the ink! (-20 HP)" + Style.RESET_ALL)
+        return 20
+
+
+def kraken_whirlpool_grab():
+    """Escape the kraken's whirlpool"""
+    print(Fore.BLUE + "\n🌀 THE KRAKEN CREATES A MASSIVE WHIRLPOOL! 🌀\n" + Style.RESET_ALL)
+    
+    print(Fore.YELLOW + "You're being pulled in! Swim against the current!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    # Button mashing challenge
+    target = 15
+    print(Fore.CYAN + f"Press SPACE {target} times quickly!" + Style.RESET_ALL)
+    
+    count = 0
+    start_time = time.time()
+    time_limit = 5
+    
+    print(Fore.WHITE + "GO!" + Style.RESET_ALL)
+    
+    while count < target and (time.time() - start_time) < time_limit:
+        key = get_key()
+        if key == ' ':
+            count += 1
+            # Show progress
+            progress = "█" * count + "░" * (target - count)
+            sys.stdout.write(f"\r{Fore.CYAN}[{progress}] {count}/{target}{Style.RESET_ALL}")
+            sys.stdout.flush()
+    
+    print()
+    elapsed = time.time() - start_time
+    
+    if count >= target:
+        print(Fore.GREEN + f"✓ Escaped! ({elapsed:.1f}s)" + Style.RESET_ALL)
+        return 0
+    else:
+        damage = 25 - (count * 1)
+        print(Fore.RED + f"💥 Pulled under! Only {count}/{target} (-{damage} HP)" + Style.RESET_ALL)
+        return damage
+
+
+def kraken_beak_strike():
+    """Quick reaction to dodge the kraken's beak"""
+    print(Fore.RED + "\n🦑 THE KRAKEN'S BEAK STRIKES! 🦑\n" + Style.RESET_ALL)
+    
+    print(Fore.YELLOW + "The creature lunges at you with its massive beak!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    # Show the kraken approaching
+    approach_frames = [
+        "       🐙",
+        "      🐙 ",
+        "     🐙  ",
+        "    🐙   ",
+        "   🐙    ",
+        "  🐙     "
+    ]
+    
+    for frame in approach_frames:
+        sys.stdout.write("\r" + Fore.MAGENTA + frame + Style.RESET_ALL)
+        sys.stdout.flush()
+        time.sleep(0.2)
+    
+    print("\n")
+    
+    directions = ['UP', 'DOWN', 'LEFT', 'RIGHT']
+    safe_dir = random.choice(directions)
+    
+    print(Fore.RED + "DODGE WHICH WAY?" + Style.RESET_ALL)
+    print(Fore.WHITE + "1. UP  2. DOWN  3. LEFT  4. RIGHT" + Style.RESET_ALL)
+    
+    dir_map = {'1': 'UP', '2': 'DOWN', '3': 'LEFT', '4': 'RIGHT'}
+    
+    start = time.time()
+    try:
+        choice = input(Fore.GREEN + "> " + Style.RESET_ALL)
+        elapsed = time.time() - start
+        
+        if dir_map.get(choice) == safe_dir and elapsed < 2:
+            print(Fore.GREEN + "✓ Dodged the beak!" + Style.RESET_ALL)
+            return 0
+        elif elapsed >= 2:
+            print(Fore.RED + f"💥 Too slow! Bitten! (-28 HP)" + Style.RESET_ALL)
+            return 28
+        else:
+            print(Fore.RED + f"💥 Wrong direction! The beak got you! (-22 HP)" + Style.RESET_ALL)
+            return 22
+    except:
+        print(Fore.RED + "💥 Paralyzed by fear! (-28 HP)" + Style.RESET_ALL)
+        return 28
+
+
+def kraken_crushing_grip():
+    """Escape from tentacle grip - timing challenge"""
+    print(Fore.MAGENTA + "\n🐙 TENTACLES WRAP AROUND YOU! 🐙\n" + Style.RESET_ALL)
+    
+    print(Fore.RED + "You're caught in the Kraken's crushing grip!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    print(Fore.YELLOW + "Press the correct keys to break free!" + Style.RESET_ALL)
+    time.sleep(1)
+    
+    total_damage = 0
+    grip_phases = 4
+    
+    for phase in range(grip_phases):
+        key = random.choice(['W', 'A', 'S', 'D'])
+        key_names = {'W': 'UP ⬆️', 'A': 'LEFT ⬅️', 'S': 'DOWN ⬇️', 'D': 'RIGHT ➡️'}
+        
+        print()
+        print(Fore.CYAN + f"Phase {phase + 1}: Press '{key}' ({key_names[key]})" + Style.RESET_ALL)
+        
+        # Squeezing animation
+        for i in range(3):
+            sys.stdout.write("\r" + Fore.RED + "SQUEEZING! " + "◉" * (i + 1) + Style.RESET_ALL)
+            sys.stdout.flush()
+            time.sleep(0.2)
+        
+        print()
+        try:
+            response = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+            if response == key:
+                print(Fore.GREEN + "✓ Loosened!" + Style.RESET_ALL)
+            else:
+                print(Fore.RED + "💥 CRUSHED! (-8 HP)" + Style.RESET_ALL)
+                total_damage += 8
+        except:
+            total_damage += 8
+        
+        time.sleep(0.3)
+    
+    if total_damage == 0:
+        print(Fore.LIGHTGREEN_EX + "\n★ FREED YOURSELF! ★" + Style.RESET_ALL)
+    
+    return total_damage
+
+
+def kraken_tidal_fury():
+    """Ultimate Kraken attack - multi-phase"""
+    print(Fore.RED + "\n🌊🐙 RELEASE THE KRAKEN'S FURY! 🐙🌊\n" + Style.RESET_ALL)
+    print(Fore.MAGENTA + "THE KRAKEN: *Roars from the abyss*" + Style.RESET_ALL)
+    time.sleep(2)
+    
+    total_damage = 0
+    
+    # Phase 1: Tentacle barrage
+    print()
+    print(Fore.CYAN + "Phase 1: TENTACLE BARRAGE!" + Style.RESET_ALL)
+    
+    for i in range(3):
+        position = random.randint(1, 3)
+        print(Fore.YELLOW + f"Tentacle {i+1} strikes position {position}!" + Style.RESET_ALL)
+        print(Fore.WHITE + "Dodge to? (1/2/3):" + Style.RESET_ALL)
+        
+        try:
+            choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
+            if choice == position:
+                total_damage += 8
+                print(Fore.RED + "💥 Hit!" + Style.RESET_ALL)
+            else:
+                print(Fore.GREEN + "✓ Dodged!" + Style.RESET_ALL)
+        except:
+            total_damage += 8
+        
+        time.sleep(0.3)
+    
+    # Phase 2: Ink cloud
+    print()
+    print(Fore.LIGHTBLACK_EX + "Phase 2: INK STORM!" + Style.RESET_ALL)
+    
+    sequence = ''.join(random.choices(['W', 'A', 'S', 'D'], k=3))
+    print(Fore.GREEN + f"Remember: {' → '.join(sequence)}" + Style.RESET_ALL)
+    time.sleep(2)
+    print(Fore.LIGHTBLACK_EX + "████████████" + Style.RESET_ALL)
+    
+    print(Fore.YELLOW + "Type sequence:" + Style.RESET_ALL)
+    try:
+        response = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+        if response == sequence:
+            print(Fore.GREEN + "✓ Navigated!" + Style.RESET_ALL)
+        else:
+            total_damage += 12
+            print(Fore.RED + "💥 Lost! (-12 HP)" + Style.RESET_ALL)
+    except:
+        total_damage += 12
+    
+    time.sleep(0.5)
+    
+    # Phase 3: Final strike
+    print()
+    print(Fore.RED + "Phase 3: THE BEAK DESCENDS!" + Style.RESET_ALL)
+    print(Fore.YELLOW + "Type 'SWIM' to escape!" + Style.RESET_ALL)
+    
+    start = time.time()
+    try:
+        response = input(Fore.GREEN + "> " + Style.RESET_ALL).upper()
+        elapsed = time.time() - start
+        
+        if response == "SWIM" and elapsed < 2.5:
+            print(Fore.GREEN + "✓ Escaped!" + Style.RESET_ALL)
+        else:
+            total_damage += 15
+            print(Fore.RED + "💥 STRUCK! (-15 HP)" + Style.RESET_ALL)
+    except:
+        total_damage += 15
+    
+    print()
+    if total_damage == 0:
+        print(Fore.LIGHTGREEN_EX + "★★★ LEGENDARY SURVIVAL! ★★★" + Style.RESET_ALL)
+    
+    return total_damage
+
+
 # ===== BOSS DEFINITIONS =====
 LOCH_NESS_ASCII = r"""
                                 _..--+~/@-@--.
@@ -988,15 +1539,15 @@ LOCH_NESS_MONSTER = Boss(
     defense=5,
 attacks=[
         # Original attacks (kept for variety)
-        BossAttack("Wave Crash", loch_ness_wave_attack, (10, 20), "Sends powerful waves"),
-        BossAttack("Water Blast", loch_ness_water_blast, (12, 18), "Fires a concentrated water jet"),
+        BossAttack("Wave Crash", loch_ness_wave_attack, (12, 25), "Sends powerful waves"),
+        BossAttack("Water Blast", loch_ness_water_blast, (15, 22), "Fires a concentrated water jet"),
         # NEW Enhanced attacks
-        BossAttack("Tidal Wave", loch_ness_tidal_wave, (0, 30), "Multi-wave barrage!"),
-        BossAttack("Whirlpool", loch_ness_whirlpool, (0, 20), "Spinning vortex trap!"),
-        BossAttack("Tail Sweep", loch_ness_tail_sweep, (0, 22), "Massive tail attack!"),
-        BossAttack("Deep Dive Slam", loch_ness_deep_dive_slam, (0, 27), "Two-phase combo!"),
-        BossAttack("Mist Breath", loch_ness_mist_breath, (0, 14), "Vision obscured!"),
-        BossAttack("ULTIMATE COMBO", loch_ness_combo_attack, (0, 24), "Devastating triple attack!")
+        BossAttack("Tidal Wave", loch_ness_tidal_wave, (0, 35), "Multi-wave barrage!"),
+        BossAttack("Whirlpool", loch_ness_whirlpool, (0, 25), "Spinning vortex trap!"),
+        BossAttack("Tail Sweep", loch_ness_tail_sweep, (0, 28), "Massive tail attack!"),
+        BossAttack("Deep Dive Slam", loch_ness_deep_dive_slam, (0, 32), "Two-phase combo!"),
+        BossAttack("Mist Breath", loch_ness_mist_breath, (0, 18), "Vision obscured!"),
+        BossAttack("ULTIMATE COMBO", loch_ness_combo_attack, (0, 30), "Devastating triple attack!")
     ],
     ascii_art=LOCH_NESS_ASCII,
     dialogue={
@@ -1035,11 +1586,11 @@ RIVER_GUARDIAN = Boss(
     hp=800,
     defense=15,
     attacks=[
-        BossAttack("Rapids Rush", river_rapids_dodge, (0, 18), "Navigate treacherous rapids!"),
-        BossAttack("Torrential Bite", river_bite_sequence, (0, 28), "Dodge rapid bite attacks!"),
-        BossAttack("Whirlpool Spin", river_current_spin, (0, 16), "Escape the spinning vortex!"),
-        BossAttack("Tail Strike", river_tail_strike, (0, 20), "Perfect timing required!"),
-        BossAttack("RIVER'S WRATH", river_wrath_combo, (0, 45), "The Guardian's ultimate fury!")
+        BossAttack("Rapids Rush", river_rapids_dodge, (0, 28), "Navigate treacherous rapids!"),
+        BossAttack("Torrential Bite", river_bite_sequence, (0, 38), "Dodge rapid bite attacks!"),
+        BossAttack("Whirlpool Spin", river_current_spin, (0, 24), "Escape the spinning vortex!"),
+        BossAttack("Tail Strike", river_tail_strike, (0, 30), "Perfect timing required!"),
+        BossAttack("RIVER'S WRATH", river_wrath_combo, (0, 55), "The Guardian's ultimate fury!")
     ],
     ascii_art=RIVER_GUARDIAN_ASCII,
     dialogue={
@@ -1094,6 +1645,218 @@ RIVER_GUARDIAN = Boss(
     spare_threshold=40
 )
 
+# Pirate Ship Boss
+PIRATE_SHIP_ASCII = """
+    ╔════════════════════════════════════════════════════╗
+    ║         🏴‍☠️  THE CRIMSON TIDE  🏴‍☠️                 ║
+    ║              [Rebel Pirate Vessel]                 ║
+    ╚════════════════════════════════════════════════════╝
+    
+                                                    _  _
+                                                   ' \/ '
+   _  _                        <|
+    \/              __'__     __'__      __'__
+                   /    /    /    /     /    /
+                  /\____\    \____\     \____\               _  _
+                 / ___!___   ___!___    ___!___               \/
+               // (      (  (      (   (      (
+             / /   \______\  \______\   \______\
+           /  /   ____!_____ ___!______ ____!_____
+         /   /   /         //         //         /
+       /    /   |         ||         ||         |
+     /_____/     \         \\         \\         \   
+           \      \_________\\_________\\_________\
+            \         |          |         |
+             \________!__________!_________!________/
+              \|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_/|
+               \    _______________                /
+^^^%%%^%^^^%^%%^\_"/_)/_)_/_)__)/_)/)/)_)_"_'_"_//)/)/)/)%%%^^^%^^%%%%^
+"""
+
+PIRATE_SHIP = Boss(
+    name="The Crimson Tide",
+    hp=350,
+    defense=12,
+    attacks=[
+        BossAttack("Cannon Barrage", pirate_cannon_barrage, (0, 50), "Dodge incoming cannonballs!"),
+        BossAttack("Harpoon Strike", pirate_harpoon_strike, (0, 28), "Duck the harpoon!"),
+        BossAttack("Broadside Ram", pirate_broadside_ram, (0, 35), "Avoid the ramming ship!"),
+        BossAttack("Net Toss", pirate_net_toss, (0, 22), "Cut yourself free!"),
+        BossAttack("ALL HANDS ASSAULT", pirate_ultimate_assault, (0, 48), "The crew's full might!")
+    ],
+    ascii_art=PIRATE_SHIP_ASCII,
+    dialogue={
+        "intro": [
+            "*A weathered pirate ship emerges from the ocean mist!*",
+            "*Cannons swivel in your direction!*",
+            "CAPTAIN REDBEARD: 'Ahoy there! Another AquaTech vessel!'",
+            "CAPTAIN REDBEARD: 'We're the Crimson Tide - we fight for freedom!'",
+            "*You try to signal you're not with AquaTech...*",
+            "CAPTAIN REDBEARD: 'Wait... ye don't look like their usual dogs...'",
+            "CAPTAIN REDBEARD: 'Blimey! We thought ye were corporate scum!'",
+            "CAPTAIN REDBEARD: 'Well... we already fired a warning shot...'",
+            "CAPTAIN REDBEARD: 'Can't back down now! EN GARDE!'"
+        ],
+        "default": [
+            "*The ship circles, cannons at the ready*",
+            "*Pirates shout battle cries from the deck*",
+            "*CAPTAIN REDBEARD watches you intently*"
+        ],
+        "hit": [
+            "*The ship rocks from the impact!*",
+            "CAPTAIN REDBEARD: 'Good hit, landlubber!'",
+            "*Pirates scramble to repair damage*"
+        ],
+        "low_hp": [
+            "*The ship is taking on water...*",
+            "CAPTAIN REDBEARD: 'Yer a fierce one, I'll give ye that!'",
+            "CAPTAIN REDBEARD: 'Perhaps we misjudged ye...'",
+            "*The crew looks uncertain about continuing*"
+        ],
+        "merciful": [
+            "*You lower your weapon and shout that you're allies!*",
+            "CAPTAIN REDBEARD: 'Hold fire, lads! HOLD FIRE!'",
+            "*The pirates pause, looking to their captain*",
+            "CAPTAIN REDBEARD: 'AquaTech's been plunderin' these waters for years!'",
+            "CAPTAIN REDBEARD: 'We fight to keep the seas free from their greed!'"
+        ],
+        "spare_ready": [
+            "*The Crimson Tide can be SPARED*",
+            "CAPTAIN REDBEARD: 'If ye truly oppose AquaTech... prove it!'"
+        ],
+        "spared": [
+            "*You shout: 'I'M NOT YOUR ENEMY! I FIGHT AQUATECH TOO!'*",
+            "CAPTAIN REDBEARD: 'CEASE FIRE! CEASE ALL FIRE!'",
+            "*The cannons go silent...*",
+            "CAPTAIN REDBEARD: 'By Davy Jones... ye really aren't with them!'",
+            "CAPTAIN REDBEARD: 'We've been fightin' those corporate pirates so long...'",
+            "CAPTAIN REDBEARD: 'We started seein' enemies in every sail!'",
+            "*The captain extends his hand across the water*",
+            "CAPTAIN REDBEARD: 'Any enemy of AquaTech is a friend of ours!'",
+            "CAPTAIN REDBEARD: 'Ye can find us at the Hub Island docks!'",
+            "CAPTAIN REDBEARD: 'Together, we'll make 'em pay for what they've done!'",
+            "*The Crimson Tide raises a flag of truce!*",
+            "*A new ally has joined your cause!*",
+            "🏴‍☠️ CAPTAIN REDBEARD is now at the docks! 🏴‍☠️"
+        ],
+        "killed": [
+            "*The ship lists heavily to one side...*",
+            "*Pirates abandon ship, jumping into the water*",
+            "CAPTAIN REDBEARD: 'Curse ye... we only wanted... freedom...'",
+            "CAPTAIN REDBEARD: 'The rebellion... will remember... this betrayal...'",
+            "*The Crimson Tide slowly sinks beneath the waves*",
+            "*The water bubbles as it disappears into the depths*",
+            "*You feel a profound weight in your chest...*",
+            "*You've destroyed those who fought against tyranny*"
+        ]
+    },
+    spare_threshold=35
+)
+
+# Kraken Boss
+KRAKEN_ASCII = """
+    ╔════════════════════════════════════════════════════╗
+    ║              🌊 THE KRAKEN 🌊                      ║
+    ║           [Ancient Terror of the Deep]             ║
+    ╚════════════════════════════════════════════════════╝
+    
+                                  ___
+                              .-'   `'.
+                             /         \\
+                             |         ;
+                             |         |           ___.--,
+                    _.._     |0) ~ (0) |    _.---'`__.-( (_.
+             __.--'`_.. '.__.\    '--. \_.-' ,.--'`     `""`
+            ( ,.--'`   ',__ /./;   ;, '.__.'`    __
+            _`) )  .---.__.' / |   |\\   \\__..--""  \"\"\"--.,_
+           `---' .'.''-._.-'`_./  /\\ '.  \\ _.-~~~````~~~-._`-.__.'
+                 | |  .' _.-' |  |  \\  \\  '.               `~---`
+                  \\ \\/ .'     \\  \\   '. '-._)
+                   \\/ /        \\  \\    `=.__`~-.
+                   / /\\         `) )    / / `"".`\\
+             , _.-'.'\\ \\        / /    ( (     / /
+              `--~`   ) )    .-'.'      '.'.  | (
+                     (/`    ( (`          ) )  '-;
+                      `      '-;         (-'
+"""
+
+KRAKEN = Boss(
+    name="The Kraken",
+    hp=500,
+    defense=18,
+    attacks=[
+        BossAttack("Tentacle Slam", kraken_tentacle_slam, (0, 75), "Dodge the massive tentacles!"),
+        BossAttack("Ink Cloud", kraken_ink_cloud, (0, 30), "Navigate through the murky ink!"),
+        BossAttack("Whirlpool Grab", kraken_whirlpool_grab, (0, 35), "Escape the pulling vortex!"),
+        BossAttack("Beak Strike", kraken_beak_strike, (0, 40), "Avoid the crushing beak!"),
+        BossAttack("Crushing Grip", kraken_crushing_grip, (0, 45), "Break free from tentacles!"),
+        BossAttack("TIDAL FURY", kraken_tidal_fury, (0, 50), "The Kraken's ultimate wrath!")
+    ],
+    ascii_art=KRAKEN_ASCII,
+    dialogue={
+        "intro": [
+            "*The ocean grows unnaturally still...*",
+            "*Massive bubbles rise from the depths*",
+            "*Something ENORMOUS stirs below...*",
+            "*ENORMOUS TENTACLES burst from the water!*",
+            "*THE KRAKEN HAS AWAKENED!*",
+            "THE KRAKEN: *An ancient, gurgling roar echoes across the waves*",
+            "*It's been sleeping for centuries... until now*"
+        ],
+        "default": [
+            "*Tentacles writhe through the water*",
+            "*The beast's massive eye watches you*",
+            "*The ocean trembles with its power*"
+        ],
+        "hit": [
+            "*The Kraken recoils!*",
+            "*A tentacle splashes back into the water*",
+            "*The creature roars in fury!*"
+        ],
+        "low_hp": [
+            "*The Kraken's movements slow...*",
+            "*Several tentacles hang limp in the water*",
+            "THE KRAKEN: *A mournful, echoing cry*",
+            "*The ancient being seems... tired*"
+        ],
+        "merciful": [
+            "*You stop attacking and float peacefully*",
+            "*The Kraken pauses... watching you*",
+            "*Its massive eye shows... curiosity?*",
+            "THE KRAKEN: *A low, resonating rumble*",
+            "*It remembers a time before humans hunted it...*"
+        ],
+        "spare_ready": [
+            "*The Kraken can be SPARED*",
+            "*The ancient creature awaits your choice*"
+        ],
+        "spared": [
+            "*You raise your hands in peace*",
+            "*The Kraken's tentacles stop thrashing*",
+            "*Slowly... it sinks back into the depths*",
+            "THE KRAKEN: *A deep, rumbling sound... almost like... gratitude?*",
+            "*Before it disappears, one tentacle gently touches your boat*",
+            "*You feel an ancient blessing flow through you*",
+            "*The Kraken has recognized your kindness*",
+            "*The ocean will remember this mercy*",
+            "🐙 The Kraken has blessed you! 🐙",
+            "*You can feel its presence watching over the seas*"
+        ],
+        "killed": [
+            "*The Kraken lets out a final, earthshaking roar...*",
+            "*Its tentacles thrash violently one last time*",
+            "THE KRAKEN: *A sound of ancient sorrow*",
+            "*The last of its kind...*",
+            "*The massive body slowly sinks into the abyss*",
+            "*The ocean grows dark and cold*",
+            "*Sailors' legends spoke of this creature for millennia...*",
+            "*Now... it's gone forever*",
+            "*You feel the weight of what you've done*"
+        ]
+    },
+    spare_threshold=30
+)
+
 # Boss item that triggers the fight
 class BossItem:
     def __init__(self, name, boss, description, location):
@@ -1115,8 +1878,60 @@ BOSS_ITEMS = {
         "A smooth stone carved with ancient symbols. The river's power flows within it...",
         "Hub Island - Swift River"
     ),
+    "Pirate Flag": BossItem(
+        "Pirate Flag",
+        PIRATE_SHIP,
+        "A tattered black flag with a skull and crossbones. It smells of salt and rebellion...",
+        "Ocean"
+    ),
+    "Kraken's Tooth": BossItem(
+        "Kraken's Tooth",
+        KRAKEN,
+        "A massive, serrated tooth from the deep. Holding it makes the ocean feel... watchful...",
+        "Ocean"
+    ),
     # Add more boss items for other locations here
 }
+
+# ===== COMBAT ITEMS SYSTEM =====
+class CombatItem:
+    def __init__(self, name, item_type, bonus_value, price, description, unlock_level=1):
+        self.name = name
+        self.item_type = item_type  # "attack", "defense", "hp"
+        self.bonus_value = bonus_value  # Amount of bonus
+        self.price = price
+        self.description = description
+        self.unlock_level = unlock_level
+
+# Combat Items - Attack Items
+COMBAT_ITEMS_ATTACK = [
+    CombatItem("Rusty Harpoon", "attack", 5, 150, "A basic weapon. +5 Attack", 1),
+    CombatItem("Sharp Fishing Spear", "attack", 10, 400, "A well-crafted spear. +10 Attack", 3),
+    CombatItem("Enchanted Trident", "attack", 18, 900, "Glows with ocean magic. +18 Attack", 6),
+    CombatItem("Kraken Slayer Blade", "attack", 28, 2000, "Forged to slay giants. +28 Attack", 10),
+    CombatItem("Poseidon's Wrath", "attack", 40, 5000, "The god's own weapon. +40 Attack", 15),
+    CombatItem("Leviathan's Fang", "attack", 55, 10000, "Ancient beast's tooth. +55 Attack", 20),
+]
+
+# Combat Items - Defense Items
+COMBAT_ITEMS_DEFENSE = [
+    CombatItem("Leather Vest", "defense", 3, 200, "Basic protection. +3 Defense", 1),
+    CombatItem("Scale Mail", "defense", 8, 500, "Made from fish scales. +8 Defense", 3),
+    CombatItem("Coral Shield", "defense", 15, 1100, "Living coral armor. +15 Defense", 6),
+    CombatItem("Turtle Shell Plate", "defense", 22, 2500, "Ancient turtle shell. +22 Defense", 10),
+    CombatItem("Diamond Coral Armor", "defense", 32, 6000, "Crystallized protection. +32 Defense", 15),
+    CombatItem("Abyssal Carapace", "defense", 45, 12000, "Deep sea guardian's shell. +45 Defense", 20),
+]
+
+# Combat Items - HP Items
+COMBAT_ITEMS_HP = [
+    CombatItem("Healing Salve", "hp", 20, 100, "Restores 20 HP. +20 Max HP", 1),
+    CombatItem("Vitality Potion", "hp", 50, 350, "Increases vitality. +50 Max HP", 3),
+    CombatItem("Whale Heart Extract", "hp", 100, 800, "Power of giants. +100 Max HP", 6),
+    CombatItem("Phoenix Scale", "hp", 150, 1800, "Regenerative powers. +150 Max HP", 10),
+    CombatItem("Elder Dragon Blood", "hp", 220, 4500, "Legendary resilience. +220 Max HP", 15),
+    CombatItem("Immortal Jellyfish Core", "hp", 300, 9000, "Near immortality. +300 Max HP", 20),
+]
 
 # Boss requirements for unlocking locations
 # Maps location name to the boss that must be defeated/spared
@@ -2483,6 +3298,21 @@ class Game:
         self.max_hp = 100
         self.current_hp = 100
         
+        # Combat items (NEW)
+        self.owned_combat_items = {
+            'attack': [],
+            'defense': [],
+            'hp': []
+        }
+        self.equipped_combat_items = {
+            'attack': None,
+            'defense': None,
+            'hp': None
+        }
+        
+        # NPC interactions
+        self.received_pirate_gift = False
+        
         # Debug
         self.debug_mode = False
     
@@ -2519,6 +3349,17 @@ class Game:
             'completed_quests': [{'title': q.title, 'description': q.description} for q in self.completed_quests],
             'max_hp': self.max_hp,
             'current_hp': self.current_hp,
+            'owned_combat_items': {
+                'attack': [item.name for item in self.owned_combat_items['attack']],
+                'defense': [item.name for item in self.owned_combat_items['defense']],
+                'hp': [item.name for item in self.owned_combat_items['hp']]
+            },
+            'equipped_combat_items': {
+                'attack': self.equipped_combat_items['attack'].name if self.equipped_combat_items['attack'] else None,
+                'defense': self.equipped_combat_items['defense'].name if self.equipped_combat_items['defense'] else None,
+                'hp': self.equipped_combat_items['hp'].name if self.equipped_combat_items['hp'] else None
+            },
+            'received_pirate_gift': self.received_pirate_gift,
         }
         
         # Create hash-based filename
@@ -2610,6 +3451,24 @@ class Game:
             self.max_hp = data.get('max_hp', 100)
             self.current_hp = data.get('current_hp', 100)
             
+            # Load combat items
+            owned_combat_data = data.get('owned_combat_items', {'attack': [], 'defense': [], 'hp': []})
+            self.owned_combat_items = {
+                'attack': [item for item in COMBAT_ITEMS_ATTACK if item.name in owned_combat_data.get('attack', [])],
+                'defense': [item for item in COMBAT_ITEMS_DEFENSE if item.name in owned_combat_data.get('defense', [])],
+                'hp': [item for item in COMBAT_ITEMS_HP if item.name in owned_combat_data.get('hp', [])]
+            }
+            
+            equipped_combat_data = data.get('equipped_combat_items', {'attack': None, 'defense': None, 'hp': None})
+            self.equipped_combat_items = {
+                'attack': next((item for item in COMBAT_ITEMS_ATTACK if item.name == equipped_combat_data.get('attack')), None),
+                'defense': next((item for item in COMBAT_ITEMS_DEFENSE if item.name == equipped_combat_data.get('defense')), None),
+                'hp': next((item for item in COMBAT_ITEMS_HP if item.name == equipped_combat_data.get('hp')), None)
+            }
+            
+            # Load NPC interactions
+            self.received_pirate_gift = data.get('received_pirate_gift', False)
+            
             print(Fore.GREEN + f"Loaded save for {self.name}!" + Style.RESET_ALL)
             time.sleep(1)
             return True
@@ -2638,6 +3497,34 @@ class Game:
         print(Fore.LIGHTYELLOW_EX + f"\n🎉 LEVEL UP! You are now level {self.level}! 🎉" + Style.RESET_ALL)
         print(Fore.GREEN + f"Earned 3 skill points! Total: {self.skill_points}" + Style.RESET_ALL)
         time.sleep(2)
+    
+    def get_attack_bonus(self):
+        """Calculate total attack bonus from equipped items"""
+        bonus = 0
+        if self.equipped_combat_items['attack']:
+            bonus += self.equipped_combat_items['attack'].bonus_value
+        return bonus
+    
+    def get_defense_bonus(self):
+        """Calculate total defense bonus from equipped items"""
+        bonus = 0
+        if self.equipped_combat_items['defense']:
+            bonus += self.equipped_combat_items['defense'].bonus_value
+        return bonus
+    
+    def get_max_hp_bonus(self):
+        """Calculate total max HP bonus from equipped items"""
+        bonus = 0
+        if self.equipped_combat_items['hp']:
+            bonus += self.equipped_combat_items['hp'].bonus_value
+        return bonus
+    
+    def update_max_hp(self):
+        """Update max HP based on equipped items"""
+        base_hp = 100
+        self.max_hp = base_hp + self.get_max_hp_bonus()
+        if self.current_hp > self.max_hp:
+            self.current_hp = self.max_hp
     
     def choose_fish(self):
         """Weighted random fish selection from current location"""
@@ -2696,14 +3583,24 @@ class Game:
             boss_item = None
             for item_name, item in BOSS_ITEMS.items():
                 if item.location == location_name:
+                    # Special case: Kraken's Tooth only spawns after pirates defeated
+                    if item_name == "Kraken's Tooth":
+                        if "The Crimson Tide" not in self.defeated_bosses:
+                            continue  # Skip Kraken's Tooth if pirates not defeated yet
+                    
                     boss_item = item
                     break
             
-            if boss_item and boss_item.name not in [i.name for i in self.boss_inventory]:
-                self.boss_inventory.append(boss_item)
-                print(Fore.MAGENTA + f"\n⚡ You found a special item: {boss_item.name}! ⚡" + Style.RESET_ALL)
-                print(Fore.YELLOW + boss_item.description + Style.RESET_ALL)
-                time.sleep(2)
+            # Don't give boss item if already in inventory OR if boss already defeated
+            if boss_item:
+                already_have_item = boss_item.name in [i.name for i in self.boss_inventory]
+                already_defeated = boss_item.boss.name in self.defeated_bosses
+                
+                if not already_have_item and not already_defeated:
+                    self.boss_inventory.append(boss_item)
+                    print(Fore.MAGENTA + f"\n⚡ You found a special item: {boss_item.name}! ⚡" + Style.RESET_ALL)
+                    print(Fore.YELLOW + boss_item.description + Style.RESET_ALL)
+                    time.sleep(2)
         
         # Create a fresh instance
         caught_fish = Fish(
@@ -2956,8 +3853,9 @@ class Game:
             
             print(Fore.CYAN + "1. Buy Rods" + Style.RESET_ALL)
             print(Fore.CYAN + "2. Buy Bait" + Style.RESET_ALL)
-            print(Fore.CYAN + "3. Repair Rod (${})".format(max(10, (100 - self.rod_durability) * 2)) + Style.RESET_ALL)
-            print(Fore.CYAN + "4. Back" + Style.RESET_ALL)
+            print(Fore.CYAN + "3. Buy Combat Items ⚔️🛡️❤️" + Style.RESET_ALL)
+            print(Fore.CYAN + "4. Repair Rod (${})".format(max(10, (100 - self.rod_durability) * 2)) + Style.RESET_ALL)
+            print(Fore.CYAN + "5. Back" + Style.RESET_ALL)
             
             choice = input(Fore.YELLOW + "\nChoice: " + Style.RESET_ALL)
             
@@ -2966,6 +3864,8 @@ class Game:
             elif choice == '2':
                 self.shop_baits()
             elif choice == '3':
+                self.shop_combat_items()
+            elif choice == '4':
                 repair_cost = max(10, (100 - self.rod_durability) * 2)
                 if self.money >= repair_cost:
                     self.money -= repair_cost
@@ -2975,7 +3875,7 @@ class Game:
                 else:
                     print(Fore.RED + "Not enough money!" + Style.RESET_ALL)
                     time.sleep(1)
-            elif choice == '4':
+            elif choice == '5':
                 break
     
     def shop_rods(self):
@@ -3047,6 +3947,140 @@ class Game:
                 else:
                     print(Fore.RED + "Not enough money!" + Style.RESET_ALL)
                     time.sleep(1)
+        except ValueError:
+            pass
+    
+    def shop_combat_items(self):
+        """Combat items shop with categories"""
+        while True:
+            self.clear_screen()
+            print(Fore.RED + "═══ ⚔️ COMBAT ITEMS ⚔️ ═══" + Style.RESET_ALL)
+            print(Fore.GREEN + f"💰 Money: ${self.money}" + Style.RESET_ALL)
+            print()
+            print(Fore.CYAN + "1. Attack Items ⚔️" + Style.RESET_ALL)
+            print(Fore.CYAN + "2. Defense Items 🛡️" + Style.RESET_ALL)
+            print(Fore.CYAN + "3. HP Items ❤️" + Style.RESET_ALL)
+            print(Fore.CYAN + "4. View/Equip Items" + Style.RESET_ALL)
+            print(Fore.CYAN + "5. Back" + Style.RESET_ALL)
+            
+            choice = input(Fore.YELLOW + "\nChoice: " + Style.RESET_ALL)
+            
+            if choice == '1':
+                self.shop_combat_category('attack', COMBAT_ITEMS_ATTACK, "⚔️ ATTACK ITEMS ⚔️")
+            elif choice == '2':
+                self.shop_combat_category('defense', COMBAT_ITEMS_DEFENSE, "🛡️ DEFENSE ITEMS 🛡️")
+            elif choice == '3':
+                self.shop_combat_category('hp', COMBAT_ITEMS_HP, "❤️ HP ITEMS ❤️")
+            elif choice == '4':
+                self.equip_combat_items()
+            elif choice == '5':
+                break
+    
+    def shop_combat_category(self, category, items_list, title):
+        """Shop for a specific combat item category"""
+        self.clear_screen()
+        print(Fore.RED + f"═══ {title} ═══" + Style.RESET_ALL)
+        print(Fore.GREEN + f"💰 Money: ${self.money}" + Style.RESET_ALL)
+        print()
+        
+        for i, item in enumerate(items_list, 1):
+            owned = "✓ Owned" if item in self.owned_combat_items[category] else f"${item.price}"
+            equipped = "⭐ EQUIPPED" if item == self.equipped_combat_items[category] else ""
+            locked = "" if self.level >= item.unlock_level else f"🔒 Lvl{item.unlock_level}"
+            print(f"{i}. {item.name} - {owned} {locked} {equipped}")
+            print(f"   {item.description}")
+        
+        print()
+        choice = input(Fore.CYAN + "Buy item (number) or 0 to cancel: " + Style.RESET_ALL)
+        
+        try:
+            idx = int(choice) - 1
+            if 0 <= idx < len(items_list):
+                item = items_list[idx]
+                if self.level < item.unlock_level:
+                    print(Fore.RED + f"Requires level {item.unlock_level}!" + Style.RESET_ALL)
+                    time.sleep(1)
+                elif item in self.owned_combat_items[category]:
+                    print(Fore.YELLOW + "You already own this item!" + Style.RESET_ALL)
+                    time.sleep(1)
+                elif self.money >= item.price:
+                    self.money -= item.price
+                    self.owned_combat_items[category].append(item)
+                    print(Fore.GREEN + f"Bought {item.name}!" + Style.RESET_ALL)
+                    time.sleep(1)
+                else:
+                    print(Fore.RED + "Not enough money!" + Style.RESET_ALL)
+                    time.sleep(1)
+        except ValueError:
+            pass
+    
+    def equip_combat_items(self):
+        """Equip owned combat items"""
+        self.clear_screen()
+        print(Fore.YELLOW + "═══ EQUIP COMBAT ITEMS ═══" + Style.RESET_ALL)
+        print()
+        
+        # Show currently equipped
+        print(Fore.CYAN + "Currently Equipped:" + Style.RESET_ALL)
+        attack_equipped = self.equipped_combat_items['attack'].name if self.equipped_combat_items['attack'] else "None"
+        defense_equipped = self.equipped_combat_items['defense'].name if self.equipped_combat_items['defense'] else "None"
+        hp_equipped = self.equipped_combat_items['hp'].name if self.equipped_combat_items['hp'] else "None"
+        
+        print(f"⚔️  Attack: {attack_equipped} (+{self.get_attack_bonus()})")
+        print(f"🛡️  Defense: {defense_equipped} (+{self.get_defense_bonus()})")
+        print(f"❤️  HP: {hp_equipped} (+{self.get_max_hp_bonus()}, Max HP: {self.max_hp})")
+        print()
+        
+        print(Fore.CYAN + "1. Equip Attack Item" + Style.RESET_ALL)
+        print(Fore.CYAN + "2. Equip Defense Item" + Style.RESET_ALL)
+        print(Fore.CYAN + "3. Equip HP Item" + Style.RESET_ALL)
+        print(Fore.CYAN + "4. Back" + Style.RESET_ALL)
+        
+        choice = input(Fore.YELLOW + "\nChoice: " + Style.RESET_ALL)
+        
+        if choice == '1':
+            self.equip_item_category('attack', "⚔️ ATTACK")
+        elif choice == '2':
+            self.equip_item_category('defense', "🛡️ DEFENSE")
+        elif choice == '3':
+            self.equip_item_category('hp', "❤️ HP")
+    
+    def equip_item_category(self, category, title):
+        """Equip an item from a specific category"""
+        if not self.owned_combat_items[category]:
+            print(Fore.YELLOW + f"You don't own any {title} items yet!" + Style.RESET_ALL)
+            time.sleep(1)
+            return
+        
+        self.clear_screen()
+        print(Fore.YELLOW + f"═══ EQUIP {title} ITEM ═══" + Style.RESET_ALL)
+        print()
+        
+        for i, item in enumerate(self.owned_combat_items[category], 1):
+            equipped = "⭐ EQUIPPED" if item == self.equipped_combat_items[category] else ""
+            print(f"{i}. {item.name} {equipped}")
+            print(f"   {item.description}")
+        
+        print(f"{len(self.owned_combat_items[category]) + 1}. Unequip")
+        print()
+        choice = input(Fore.CYAN + "Equip which item? " + Style.RESET_ALL)
+        
+        try:
+            idx = int(choice) - 1
+            if idx == len(self.owned_combat_items[category]):
+                # Unequip
+                self.equipped_combat_items[category] = None
+                if category == 'hp':
+                    self.update_max_hp()
+                print(Fore.GREEN + f"Unequipped {title} item!" + Style.RESET_ALL)
+                time.sleep(1)
+            elif 0 <= idx < len(self.owned_combat_items[category]):
+                item = self.owned_combat_items[category][idx]
+                self.equipped_combat_items[category] = item
+                if category == 'hp':
+                    self.update_max_hp()
+                print(Fore.GREEN + f"Equipped {item.name}!" + Style.RESET_ALL)
+                time.sleep(1)
         except ValueError:
             pass
     
@@ -3131,8 +4165,186 @@ class Game:
     
     def visit_dock(self):
         """Dock - travel to other locations via world map"""
-        world_map = WorldMap(self)
-        return world_map.run()
+        # Check if Pirate Captain is available
+        if "The Crimson Tide" in self.defeated_bosses and self.karma > 0:
+            # Show pirate captain option
+            self.clear_screen()
+            print(Fore.CYAN + "╔═══════════════════════════════════════╗" + Style.RESET_ALL)
+            print(Fore.CYAN + "║              THE DOCKS                ║" + Style.RESET_ALL)
+            print(Fore.CYAN + "╚═══════════════════════════════════════╝" + Style.RESET_ALL)
+            print()
+            print(Fore.YELLOW + "🏴‍☠️ The Crimson Tide is moored at the dock!" + Style.RESET_ALL)
+            print()
+            print(Fore.WHITE + "1. Travel to other locations" + Style.RESET_ALL)
+            print(Fore.WHITE + "2. Talk to Captain Redbeard" + Style.RESET_ALL)
+            print(Fore.LIGHTBLACK_EX + "3. Leave" + Style.RESET_ALL)
+            
+            choice = input(Fore.CYAN + "\nYour choice: " + Style.RESET_ALL)
+            
+            if choice == '1':
+                world_map = WorldMap(self)
+                return world_map.run()
+            elif choice == '2':
+                self.interact_with_pirate_captain()
+                return None
+            else:
+                return None
+        else:
+            # Normal dock behavior
+            world_map = WorldMap(self)
+            return world_map.run()
+    
+    def interact_with_pirate_captain(self):
+        """Talk to Captain Redbeard after sparing the pirate ship"""
+        while True:
+            self.clear_screen()
+            
+            pirate_art = """
+            🏴‍☠️ Captain Redbeard - The Crimson Tide 🏴‍☠️
+            
+                     ___
+                   _/   \\_
+                  / | @ @|\\
+                 |  |  >  ||     "Freedom or death!"
+                  \\ | === |/
+                   \\|_____|
+                    |     |
+                   _|_____|_
+                  /   ⚓⚓   \\
+                 |  CAPTAIN  |
+                 |  REDBEARD |
+                  \\__________/
+            """
+            
+            print(Fore.RED + pirate_art + Style.RESET_ALL)
+            print()
+            
+            if random.random() < 0.3:
+                greetings = [
+                    "Ahoy, matey! Welcome aboard!",
+                    "Well met, friend! Ready to strike back at AquaTech?",
+                    "Aye, there ye are! Our rebel ally!",
+                    "Welcome to the Crimson Tide, comrade!",
+                    "Good to see ye! The seas need more like you.",
+                ]
+                print(Fore.GREEN + random.choice(greetings) + Style.RESET_ALL)
+                print()
+            
+            print(Fore.YELLOW + "What would you like to discuss?" + Style.RESET_ALL)
+            print()
+            print(Fore.WHITE + "1. Ask about AquaTech Industries" + Style.RESET_ALL)
+            print(Fore.WHITE + "2. Ask about the rebellion" + Style.RESET_ALL)
+            print(Fore.WHITE + "3. Ask about pirate life" + Style.RESET_ALL)
+            print(Fore.WHITE + "4. Get a gift from the captain" + Style.RESET_ALL)
+            print(Fore.LIGHTBLACK_EX + "5. Leave" + Style.RESET_ALL)
+            print()
+            
+            choice = input(Fore.CYAN + "Your choice: " + Style.RESET_ALL)
+            
+            if choice == '1':
+                self.clear_screen()
+                print(Fore.RED + pirate_art + Style.RESET_ALL)
+                print()
+                print(Fore.RED + "Captain Redbeard:" + Style.RESET_ALL)
+                print(Fore.WHITE + "\"AquaTech... those corporate scoundrels.\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"They claim they're 'managing the seas responsibly.'\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"But we know the truth - they're plunderin' everything!\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.YELLOW + "\"Overfishing, pollution, drivin' out the guardians...\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"We were fishermen once, honest folk.\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"But when they seized our ancestral waters...\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.RED + "\"We became pirates. Rebels. Defenders of the free seas!\"" + Style.RESET_ALL)
+                time.sleep(2)
+                print()
+                print(Fore.LIGHTBLACK_EX + "Press any key to continue..." + Style.RESET_ALL)
+                get_key()
+                
+            elif choice == '2':
+                self.clear_screen()
+                print(Fore.RED + pirate_art + Style.RESET_ALL)
+                print()
+                print(Fore.RED + "Captain Redbeard:" + Style.RESET_ALL)
+                print(Fore.WHITE + "\"The rebellion grows stronger every day!\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"Ships from all corners join our cause.\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.YELLOW + "\"Even some of the guardians ye spared have blessed us.\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"Together, we'll break AquaTech's stranglehold!\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"The seas belong to all, not just the highest bidder!\"" + Style.RESET_ALL)
+                time.sleep(2)
+                print()
+                print(Fore.LIGHTBLACK_EX + "Press any key to continue..." + Style.RESET_ALL)
+                get_key()
+                
+            elif choice == '3':
+                self.clear_screen()
+                print(Fore.RED + pirate_art + Style.RESET_ALL)
+                print()
+                print(Fore.RED + "Captain Redbeard:" + Style.RESET_ALL)
+                print(Fore.WHITE + "\"Aye, the pirate life! Freedom on the open water!\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"No corporate overlords tellin' us what to do.\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"We fish where we want, sail where we please.\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.YELLOW + "\"It's dangerous, sure. But it's OURS.\"" + Style.RESET_ALL)
+                time.sleep(1.5)
+                print(Fore.WHITE + "\"Every sunrise on deck is worth the risk!\"" + Style.RESET_ALL)
+                time.sleep(2)
+                print()
+                print(Fore.LIGHTBLACK_EX + "Press any key to continue..." + Style.RESET_ALL)
+                get_key()
+                
+            elif choice == '4':
+                self.clear_screen()
+                print(Fore.RED + pirate_art + Style.RESET_ALL)
+                print()
+                
+                # Check if already received gift
+                if self.received_pirate_gift:
+                    print(Fore.RED + "Captain Redbeard:" + Style.RESET_ALL)
+                    print(Fore.WHITE + "\"Ye already got yer share of the booty, matey!\"" + Style.RESET_ALL)
+                    time.sleep(1)
+                    print(Fore.WHITE + "\"Can't be givin' away all our treasure now, can we?\"" + Style.RESET_ALL)
+                    time.sleep(1.5)
+                    print(Fore.YELLOW + "\"But yer always welcome aboard the Crimson Tide!\"" + Style.RESET_ALL)
+                    time.sleep(1.5)
+                else:
+                    # Give reward based on karma
+                    if self.karma >= 3:
+                        reward = random.randint(200, 500)
+                        self.money += reward
+                        print(Fore.RED + "Captain Redbeard:" + Style.RESET_ALL)
+                        print(Fore.WHITE + "\"Ye've proven yerself a true friend of the rebellion!\"" + Style.RESET_ALL)
+                        time.sleep(1)
+                        print(Fore.YELLOW + f"\"Take this - {reward} gold pieces from our latest raid!\"" + Style.RESET_ALL)
+                        print(Fore.GREEN + f"+${reward} received!" + Style.RESET_ALL)
+                        self.received_pirate_gift = True
+                    else:
+                        reward = random.randint(50, 150)
+                        self.money += reward
+                        print(Fore.RED + "Captain Redbeard:" + Style.RESET_ALL)
+                        print(Fore.WHITE + "\"Here, have some coin for the road, mate!\"" + Style.RESET_ALL)
+                        print(Fore.GREEN + f"+${reward} received!" + Style.RESET_ALL)
+                        self.received_pirate_gift = True
+                
+                time.sleep(2)
+                print()
+                print(Fore.LIGHTBLACK_EX + "Press any key to continue..." + Style.RESET_ALL)
+                get_key()
+                
+            elif choice == '5':
+                break
+            else:
+                print(Fore.RED + "Invalid choice!" + Style.RESET_ALL)
+                time.sleep(1)
     
     def interact_with_npc_fisherman(self):
         """Talk to the NPC fisherman and get a random fact"""
@@ -3648,7 +4860,7 @@ class Game:
                 print()
                 
                 # Calculate damage with multiplier from minigame
-                base_damage = random.randint(15, 25) + (self.stats['strength'] * 2)
+                base_damage = random.randint(15, 25) + (self.stats['strength'] * 2) + self.get_attack_bonus()
                 damage = int(base_damage * damage_multiplier)
                 actual_damage = boss.take_damage(damage)
                 
@@ -3815,6 +5027,10 @@ class Game:
             damage_taken = attack.execute()
             
             if damage_taken > 0:
+                # Apply defense reduction
+                defense_bonus = self.get_defense_bonus()
+                damage_taken = max(1, damage_taken - defense_bonus)  # Minimum 1 damage
+                
                 self.current_hp -= damage_taken
                 print()
                 
@@ -3927,7 +5143,9 @@ class Game:
         print()
         print(Fore.CYAN + "1. Loch Ness Monster (Lake)" + Style.RESET_ALL)
         print(Fore.CYAN + "2. River Guardian (River)" + Style.RESET_ALL)
-        print(Fore.CYAN + "3. [MORE BOSSES COMING SOON]" + Style.RESET_ALL)
+        print(Fore.CYAN + "3. The Crimson Tide (Pirate Ship - Ocean)" + Style.RESET_ALL)
+        print(Fore.CYAN + "4. The Kraken (Ocean)" + Style.RESET_ALL)
+        print(Fore.CYAN + "5. [MORE BOSSES COMING SOON]" + Style.RESET_ALL)
         print(Fore.WHITE + "0. Back" + Style.RESET_ALL)
         
         choice = input(Fore.GREEN + "\nSpawn which boss? " + Style.RESET_ALL)
@@ -3936,6 +5154,10 @@ class Game:
             self.start_boss_fight(LOCH_NESS_MONSTER)
         elif choice == '2':
             self.start_boss_fight(RIVER_GUARDIAN)
+        elif choice == '3':
+            self.start_boss_fight(PIRATE_SHIP)
+        elif choice == '4':
+            self.start_boss_fight(KRAKEN)
 
 
 # ===== MAIN =====
