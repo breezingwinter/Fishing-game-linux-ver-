@@ -1,4 +1,4 @@
-# 🎣 Very Cool Fishing Game
+# 🎣 Very Cool Fishing Game Soon On Linux!
 
 A feature-rich terminal-based fishing RPG with beautiful Unicode graphics, exploration mechanics, dynamic progression systems, and **epic boss battles!**
 
@@ -780,4 +780,5 @@ Karma +10 (Total: 10)
 
 
 wow du leste gjennom
+
 
