@@ -1,4 +1,4 @@
-# 🎣 Very Cool Fishing Game Soon On Linux!
+# 🎣 Very Cool Fishing Game Soon On Linux! (nvm noko got banned)
 
 A feature-rich terminal-based fishing RPG with beautiful Unicode graphics, exploration mechanics, dynamic progression systems, and **epic boss battles!**
 
